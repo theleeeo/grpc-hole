@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 
 	"github.com/TheLeeeo/grpc-hole/service"
 	"github.com/jhump/protoreflect/desc"
@@ -12,6 +13,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 func testInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
@@ -80,16 +82,16 @@ func (proxyCodec) Name() string {
 }
 
 func main() {
-	// scanning.ScanService(":5001")
+	// if err := scanning.ScanService(":5001"); err != nil {
+	// 	panic(err)
+	// }
+	// return
 	s, err := service.Load("QouteService")
 	if err != nil {
 		panic(err)
 	}
 
-	meth := s.GetMethod("GetRandomQoute")
-	fmt.Println(meth)
-
-	srv := grpc.NewServer(grpc.UnknownServiceHandler(createProxyHandler(meth.GetInputType(), meth.GetOutputType())))
+	srv := grpc.NewServer(grpc.UnknownServiceHandler(createProxyHandler(s)))
 
 	// ts := &TestServer{}
 	// s.RegisterService(&TestService_ServiceDesc, ts)
@@ -111,28 +113,125 @@ func init() {
 	encoding.RegisterCodec(proxyCodec{})
 }
 
-func createProxyHandler(in, out *desc.MessageDescriptor) func(srv interface{}, stream grpc.ServerStream) error {
+func createProxyHandler(service *desc.ServiceDescriptor) func(srv interface{}, stream grpc.ServerStream) error {
 	return func(srv interface{}, stream grpc.ServerStream) error {
-		// Extract the method name from the stream's context.
-		method, ok := grpc.Method(stream.Context())
+		// Extract the fullMethodName name from the stream's context.
+		fullMethodName, ok := grpc.Method(stream.Context())
 		if !ok {
 			log.Println("Failed to get method from context")
 			return fmt.Errorf("unknown method")
 		}
 
-		fmt.Printf("Received request for method: %s\n", method)
+		fmt.Printf("Received request for method: %s\n", fullMethodName)
 
-		msg := dynamic.NewMessage(in)
-		if err := stream.RecvMsg(msg); err != nil {
+		method := service.FindMethodByName(getMethodName(fullMethodName))
+
+		err := handleRequest(stream, method)
+		if err != nil {
 			return err
 		}
-
-		fmt.Println(msg)
-		fs := msg.GetKnownFields()
-		fmt.Println(fs)
-		fmt.Println(msg.GetField(fs[0]))
 
 		// return stream.SendMsg(&dyn) // You may want to customize the response.
 		return nil
 	}
+}
+
+func getMethodName(fullName string) string {
+	nameParts := strings.Split(fullName, "/")
+	return nameParts[len(nameParts)-1]
+}
+
+func handleRequest(stream grpc.ServerStream, method *desc.MethodDescriptor) error {
+	msg := dynamic.NewMessage(method.GetInputType())
+	if err := stream.RecvMsg(msg); err != nil {
+		return err
+	}
+
+	m, _ := msg.MarshalJSON()
+	fmt.Println(string(m))
+
+	outType := method.GetOutputType()
+	// out := dynamic.NewMessage(outType)
+	out := randomizeMessage(outType)
+
+	// qouteType := outType.GetFields()[0].GetMessageType()
+	// qoute := dynamic.NewMessage(qouteType)
+
+	//load the file
+	// b, err := os.ReadFile("testmsg.json")
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return err
+	// }
+
+	// err = qoute.UnmarshalJSON(b)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return err
+	// }
+
+	// populate the field with random data
+
+	return stream.SendMsg(out)
+}
+
+func randomizeMessage(f *desc.MessageDescriptor) *dynamic.Message {
+	msg := dynamic.NewMessage(f)
+	for _, field := range f.GetFields() {
+		switch field.GetType() {
+		case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
+			if field.GetLabel() == descriptorpb.FieldDescriptorProto_LABEL_REPEATED {
+				msg.AddRepeatedField(field, randomizeMessage(field.GetMessageType()))
+			} else {
+				msg.SetField(field, randomizeMessage(field.GetMessageType()))
+			}
+		case descriptorpb.FieldDescriptorProto_TYPE_STRING:
+			if field.GetLabel() == descriptorpb.FieldDescriptorProto_LABEL_REPEATED {
+				msg.AddRepeatedField(field, "Hello World")
+			} else {
+				msg.SetField(field, "Hello World")
+			}
+		case descriptorpb.FieldDescriptorProto_TYPE_INT32,
+			descriptorpb.FieldDescriptorProto_TYPE_INT64,
+			descriptorpb.FieldDescriptorProto_TYPE_UINT32,
+			descriptorpb.FieldDescriptorProto_TYPE_UINT64,
+			descriptorpb.FieldDescriptorProto_TYPE_SINT32,
+			descriptorpb.FieldDescriptorProto_TYPE_SINT64,
+			descriptorpb.FieldDescriptorProto_TYPE_FIXED32,
+			descriptorpb.FieldDescriptorProto_TYPE_FIXED64,
+			descriptorpb.FieldDescriptorProto_TYPE_SFIXED32,
+			descriptorpb.FieldDescriptorProto_TYPE_SFIXED64:
+			if field.GetLabel() == descriptorpb.FieldDescriptorProto_LABEL_REPEATED {
+				msg.AddRepeatedField(field, 123)
+			} else {
+				msg.SetField(field, 123)
+			}
+		case descriptorpb.FieldDescriptorProto_TYPE_BOOL:
+			if field.GetLabel() == descriptorpb.FieldDescriptorProto_LABEL_REPEATED {
+				msg.AddRepeatedField(field, true)
+			} else {
+				msg.SetField(field, true)
+			}
+		case descriptorpb.FieldDescriptorProto_TYPE_DOUBLE,
+			descriptorpb.FieldDescriptorProto_TYPE_FLOAT:
+			if field.GetLabel() == descriptorpb.FieldDescriptorProto_LABEL_REPEATED {
+				msg.AddRepeatedField(field, 123.123)
+			} else {
+				msg.SetField(field, 123.123)
+			}
+		case descriptorpb.FieldDescriptorProto_TYPE_BYTES:
+			if field.GetLabel() == descriptorpb.FieldDescriptorProto_LABEL_REPEATED {
+				msg.AddRepeatedField(field, []byte("Hello World"))
+			} else {
+				msg.SetField(field, []byte("Hello World"))
+			}
+		case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
+			if field.GetLabel() == descriptorpb.FieldDescriptorProto_LABEL_REPEATED {
+				msg.AddRepeatedField(field, 1)
+			} else {
+				msg.SetField(field, 1)
+			}
+		}
+	}
+	return msg
 }

@@ -1,8 +1,9 @@
 package service
 
 import (
+	"encoding/json"
+	"errors"
 	"os"
-	"strings"
 
 	"github.com/TheLeeeo/grpc-hole/utils"
 	"github.com/jhump/protoreflect/desc"
@@ -10,21 +11,25 @@ import (
 )
 
 // Load a service from disk
-func Load(serviceName string) (*Service, error) {
+func Load(serviceName string) (*desc.ServiceDescriptor, error) {
 	path := "saved_services" + "/" + serviceName + "/"
 
-	data, err := os.ReadFile(path + "data")
+	data, err := os.ReadFile(path + "data.json")
 	if err != nil {
 		return nil, err
 	}
 
-	fileContent := string(data)
-	// Split the fileContent into lines
-	lines := strings.Split(fileContent, "\n")
-	// Remove last empty line
-	lines = lines[:len(lines)-1]
+	sd := &serviceData{}
+	err = json.Unmarshal(data, sd)
+	if err != nil {
+		return nil, err
+	}
 
-	descrSet := loadDescriptorSet(lines, path)
+	descrSet, err := loadDescriptorSet(sd.File, sd.DependentFiles, path)
+	if err != nil {
+		return nil, err
+	}
+
 	fileDescr, err := desc.CreateFileDescriptorFromSet(descrSet)
 	if err != nil {
 		return nil, err
@@ -40,31 +45,32 @@ func Load(serviceName string) (*Service, error) {
 
 	// fmt.Println(fileDescr.GetServices()[0].GetMethods()) //.GetOutputType())
 
-	return createService(fileDescr)
-}
-
-func createService(fileDescr *desc.FileDescriptor) (*Service, error) {
-	serviceDescr := fileDescr.GetServices()[0]
-
-	service := New(serviceDescr.GetFullyQualifiedName(), serviceDescr)
+	service := fileDescr.FindService(sd.Name)
+	if service == nil {
+		return nil, errors.New("Service not found")
+	}
 
 	return service, nil
 }
 
-func loadDescriptorSet(filenames []string, path string) *descriptorpb.FileDescriptorSet {
+func loadDescriptorSet(mainFile string, deps []string, path string) (*descriptorpb.FileDescriptorSet, error) {
 	descriptorSet := &descriptorpb.FileDescriptorSet{}
 
 	// Load all dependencies
-	for _, fileName := range filenames[1:] {
+	for _, fileName := range deps {
 		descFile := &descriptorpb.FileDescriptorProto{}
-		utils.ProtoLoadAndUnmarshal(path+fileName, descFile)
+		if err := utils.ProtoLoadAndUnmarshal(path+fileName, descFile); err != nil {
+			return nil, err
+		}
 		descriptorSet.File = append(descriptorSet.File, descFile)
 	}
 
 	// Load the service
 	descFile := &descriptorpb.FileDescriptorProto{}
-	utils.ProtoLoadAndUnmarshal(path+filenames[0], descFile)
+	if err := utils.ProtoLoadAndUnmarshal(path+mainFile, descFile); err != nil {
+		return nil, err
+	}
 	descriptorSet.File = append(descriptorSet.File, descFile)
 
-	return descriptorSet
+	return descriptorSet, nil
 }

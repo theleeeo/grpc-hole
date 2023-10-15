@@ -9,36 +9,40 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func ProtoJsonMarshalAndSave(m protoreflect.ProtoMessage, fileName string) {
+func ProtoJsonMarshalAndSave(m protoreflect.ProtoMessage, fileName string) error {
 	bytes, err := protojson.Marshal(m)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	err = os.MkdirAll(path.Dir(fileName), os.ModePerm)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	fileName = setExtToJSON(fileName)
 
 	err = os.WriteFile(fileName, bytes, os.ModePerm)
 	if err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }
 
-func ProtoLoadAndUnmarshal(fileName string, m protoreflect.ProtoMessage) {
+func ProtoLoadAndUnmarshal(fileName string, m protoreflect.ProtoMessage) error {
 	fileName = setExtToJSON(fileName)
 
 	file, err := os.ReadFile(fileName)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	err = protojson.Unmarshal(file, m)
 	if err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }
 
 // Replaces the fileextesion with json

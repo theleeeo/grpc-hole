@@ -10,10 +10,10 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func ScanService(addr string) {
+func ScanService(addr string) error {
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer conn.Close()
 
@@ -22,7 +22,7 @@ func ScanService(addr string) {
 
 	serviceNames, err := refClient.ListServices()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	mainServices := getNonReflectServices(serviceNames)
@@ -30,10 +30,10 @@ func ScanService(addr string) {
 	for _, mainService := range mainServices {
 		serviceDescr, _ := refClient.ResolveService(mainService)
 
-		svc := service.New(mainService, serviceDescr)
-		svc.Save()
+		service.Save(serviceDescr)
 	}
 
+	return nil
 }
 
 func getFirstNonReflectionService(services []string) string {
