@@ -3,10 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"net"
 	"os"
 
+	"github.com/TheLeeeo/grpc-hole/cli"
 	"github.com/TheLeeeo/grpc-hole/utils"
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/grpcreflect"
@@ -19,23 +18,14 @@ import (
 	"google.golang.org/protobuf/types/dynamicpb"
 )
 
+func main() {
+	if err := cli.RootCmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
 func v1() {
-	lis, err := net.Listen("tcp", ":50051")
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
-	// s := grpc.NewServer()
-	s := grpc.NewServer(grpc.UnaryInterceptor(testInterceptor))
-
-	// pb.RegisterMyAppServiceServer(s, &server{})
-
-	fmt.Println("Server started")
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
-
-	return
-
 	conn, err := grpc.Dial(":5001", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		panic(err)

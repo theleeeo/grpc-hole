@@ -5,27 +5,25 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/TheLeeeo/grpc-hole/utils"
 	"github.com/jhump/protoreflect/desc"
 )
 
-const (
-	directory = "saved_services"
-)
-
 // Persist a service to disk
-func Save(serv *desc.ServiceDescriptor) error {
+func Save(dir string, serv *desc.ServiceDescriptor) error {
 	data := &serviceData{
-		Name: serv.GetFullyQualifiedName(),
-		File: serv.GetFile().GetName(),
+		Name:    serv.GetFullyQualifiedName(),
+		File:    serv.GetFile().GetName(),
+		SavedAt: time.Now(),
 	}
 
-	if err := deleteDir(directory); err != nil {
+	if err := deleteDir(dir); err != nil {
 		return err
 	}
 
-	path := filepath.Join(directory, serv.GetName())
+	path := filepath.Join(dir, serv.GetName())
 
 	// save the service file to disk
 	if err := saveFileDesc(serv.GetFile(), path); err != nil {
@@ -88,7 +86,7 @@ func saveDataFile(data *serviceData, path string) error {
 		return err
 	}
 
-	err = os.WriteFile(filepath.Join(path, "/data.json"), dataJson, os.ModePerm)
+	err = os.WriteFile(filepath.Join(path, ServiceDataFileName), dataJson, os.ModePerm)
 	if err != nil {
 		return err
 	}

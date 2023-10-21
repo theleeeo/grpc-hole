@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net"
 	"strings"
 
-	"github.com/TheLeeeo/grpc-hole/service"
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/dynamic"
 	"google.golang.org/grpc"
@@ -15,15 +13,6 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
-
-func testInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-	fmt.Println("testInterceptor")
-	fmt.Println(req)
-	fmt.Println(info.FullMethod)
-	fmt.Println(info.Server)
-	return
-	// return handler(ctx, req)
-}
 
 func Test() {}
 
@@ -81,33 +70,33 @@ func (proxyCodec) Name() string {
 	return "proxy"
 }
 
-func main() {
-	// if err := scanning.ScanService(":5001"); err != nil {
-	// 	panic(err)
-	// }
-	// return
-	s, err := service.Load("QouteService")
-	if err != nil {
-		panic(err)
-	}
+// func main() {
+// 	// if err := scanning.ScanService(":5001"); err != nil {
+// 	// 	panic(err)
+// 	// }
+// 	// return
+// 	s, err := service.Load("QouteService")
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-	srv := grpc.NewServer(grpc.UnknownServiceHandler(createProxyHandler(s)))
+// 	srv := grpc.NewServer(grpc.UnknownServiceHandler(createProxyHandler(s)))
 
-	// ts := &TestServer{}
-	// s.RegisterService(&TestService_ServiceDesc, ts)
+// 	// ts := &TestServer{}
+// 	// s.RegisterService(&TestService_ServiceDesc, ts)
 
-	// reflection.Register(s)
+// 	// reflection.Register(s)
 
-	lis, err := net.Listen("tcp", ":50051")
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
+// 	lis, err := net.Listen("tcp", ":50051")
+// 	if err != nil {
+// 		log.Fatalf("failed to listen: %v", err)
+// 	}
 
-	fmt.Println("Server started")
-	if err := srv.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
-}
+// 	fmt.Println("Server started")
+// 	if err := srv.Serve(lis); err != nil {
+// 		log.Fatalf("failed to serve: %v", err)
+// 	}
+// }
 
 func init() {
 	encoding.RegisterCodec(proxyCodec{})

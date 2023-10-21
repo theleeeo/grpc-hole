@@ -2,18 +2,27 @@ package scanning
 
 import (
 	"context"
+	"errors"
 	"strings"
 
-	"github.com/TheLeeeo/grpc-hole/service"
+	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/grpcreflect"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func ScanService(addr string) error {
+var (
+	ErrNoAddress = errors.New("no address provided")
+)
+
+func ScanServer(addr string) ([]*desc.ServiceDescriptor, error) {
+	if addr == "" {
+		return nil, ErrNoAddress
+	}
+
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer conn.Close()
 
@@ -22,18 +31,17 @@ func ScanService(addr string) error {
 
 	serviceNames, err := refClient.ListServices()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	mainServices := getNonReflectServices(serviceNames)
-
-	for _, mainService := range mainServices {
+	mainServiceNames := getNonReflectServices(serviceNames)
+	services := make([]*desc.ServiceDescriptor, 0)
+	for _, mainService := range mainServiceNames {
 		serviceDescr, _ := refClient.ResolveService(mainService)
-
-		service.Save(serviceDescr)
+		services = append(services, serviceDescr)
 	}
 
-	return nil
+	return services, nil
 }
 
 func getFirstNonReflectionService(services []string) string {
