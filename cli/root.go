@@ -13,10 +13,6 @@ func init() {
 	RootCmd.PersistentFlags().StringP(vars.SerivceDirKey, "d", ".services", "directory to store services")
 	viper.BindPFlag(vars.SerivceDirKey, RootCmd.PersistentFlags().Lookup(vars.SerivceDirKey))
 
-	//which service to use
-	RootCmd.PersistentFlags().StringP(vars.ServiceKey, "s", "", "service to use")
-	viper.BindPFlag(vars.ServiceKey, RootCmd.PersistentFlags().Lookup(vars.ServiceKey))
-
 	RootCmd.AddCommand(servicecmd.ServiceCmd)
 	RootCmd.AddCommand(servercmd.ServerCmd)
 }

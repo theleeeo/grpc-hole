@@ -11,18 +11,18 @@ import (
 )
 
 var (
-	address string
+	targetAddr string
 )
 
 func init() {
-	ScanCmd.PersistentFlags().StringVarP(&address, "address", "a", "", "address of the grpc server")
+	ScanCmd.PersistentFlags().StringVarP(&targetAddr, "target", "t", "", "address of the target grpc server to scan")
 }
 
 var ScanCmd = &cobra.Command{
 	Use:   "scan",
 	Short: "scan a running grpc server for services",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		services, err := scanning.ScanServer(address)
+		services, err := scanning.ScanServer(targetAddr)
 		if err != nil {
 			return err
 		}
