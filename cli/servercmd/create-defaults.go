@@ -26,7 +26,8 @@ var CreateDefaultsCmd = &cobra.Command{
 			return (fmt.Errorf("too many arguments"))
 		}
 
-		service, err := service.Load(viper.GetString(vars.SerivceDirKey), args[0])
+		path := filepath.Join(viper.GetString(vars.SerivceDirKey), args[0])
+		service, err := service.Load(path)
 		if err != nil {
 			color.Red(fmt.Errorf("failed to load service: %w", err).Error())
 			os.Exit(1)

@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/TheLeeeo/grpc-hole/cli/vars"
-	"github.com/TheLeeeo/grpc-hole/server"
-	"github.com/TheLeeeo/grpc-hole/service"
+	"github.com/TheLeeeo/grpc-hole/runner"
 	"github.com/fatih/color"
 	"github.com/hashicorp/go-hclog"
 	"github.com/spf13/cobra"
@@ -41,30 +39,23 @@ var StartCmd = &cobra.Command{
 			return fmt.Errorf("invalid log level: %s", viper.GetString("log-level"))
 		}
 
-		logger := hclog.New(&hclog.LoggerOptions{
-			Name:  "grpc-hole",
-			Level: level,
-			Color: hclog.AutoColor,
-		})
-
-		serviceDescr, err := service.Load(viper.GetString(vars.SerivceDirKey), args[0])
-		if err != nil {
-			color.Red(fmt.Errorf("failed to load service: %w", err).Error())
-			os.Exit(1)
-		}
-
-		cfg := &server.Config{
+		cfg := &runner.Config{
 			Address: viper.GetString("addr"),
-			Service: serviceDescr,
+			Logging: &hclog.LoggerOptions{
+				Name:  "grpc-hole",
+				Level: level,
+				Color: hclog.AutoColor,
+			},
+			ServiceName: args[0],
 		}
 
-		s, err := server.New(cfg, logger)
+		r, err := runner.New(cfg)
 		if err != nil {
 			color.Red(fmt.Errorf("failed to create server: %w", err).Error())
 			os.Exit(1)
 		}
 
-		if err = s.Run(); err != nil {
+		if err = r.Run(); err != nil {
 			color.Red(fmt.Errorf("failed to run server: %w", err).Error())
 			os.Exit(1)
 		}

@@ -2,85 +2,11 @@ package server
 
 import (
 	"fmt"
-	"log"
-	"strings"
 
-	"github.com/TheLeeeo/grpc-hole/service"
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/dynamic"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/encoding"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
-
-func init() {
-	encoding.RegisterCodec(proxyCodec{})
-}
-
-type proxyCodec struct{}
-
-func (proxyCodec) Marshal(v interface{}) ([]byte, error) {
-	return *(v.(*[]byte)), nil
-}
-
-func (proxyCodec) Unmarshal(data []byte, v interface{}) error {
-	vv := v.(*[]byte)
-	*vv = data
-	return nil
-}
-
-func (proxyCodec) Name() string {
-	return "proxy"
-}
-
-func createProxyHandler(service *desc.ServiceDescriptor) func(srv interface{}, stream grpc.ServerStream) error {
-	return func(srv interface{}, stream grpc.ServerStream) error {
-		// Extract the fullMethodName name from the stream's context.
-		fullMethodName, ok := grpc.Method(stream.Context())
-		if !ok {
-			log.Println("Failed to get method from context")
-			return fmt.Errorf("unknown method")
-		}
-
-		fmt.Printf("Received request for method: %s\n", fullMethodName)
-
-		method := service.FindMethodByName(getMethodName(fullMethodName))
-
-		err := handleRequest(stream, method)
-		if err != nil {
-			return err
-		}
-
-		// return stream.SendMsg(&dyn) // You may want to customize the response.
-		return nil
-	}
-}
-
-func getMethodName(fullName string) string {
-	nameParts := strings.Split(fullName, "/")
-	return nameParts[len(nameParts)-1]
-}
-
-func handleRequest(stream grpc.ServerStream, method *desc.MethodDescriptor) error {
-	msg := dynamic.NewMessage(method.GetInputType())
-	if err := stream.RecvMsg(msg); err != nil {
-		return err
-	}
-
-	m, _ := msg.MarshalJSON()
-	fmt.Println("Received request:", string(m))
-
-	outType := method.GetOutputType()
-
-	out, err := service.LoadResponse(method.GetService().GetName(), method.GetName(), outType)
-	if err != nil {
-		return err
-	}
-
-	// out := CreatePopulatedMessage(outType)
-
-	return stream.SendMsg(out)
-}
 
 func CreatePopulatedMessage(f *desc.MessageDescriptor) *dynamic.Message {
 	msg := dynamic.NewMessage(f)

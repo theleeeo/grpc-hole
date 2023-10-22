@@ -24,14 +24,14 @@ var InfoCmd = &cobra.Command{
 			return (fmt.Errorf("too many arguments"))
 		}
 
-		sericeDir := viper.GetString(vars.SerivceDirKey)
-		serviceData, err := service.LoadDataFile(filepath.Join(sericeDir, args[0]))
+		serviceDir := filepath.Join(viper.GetString(vars.SerivceDirKey), args[0])
+		serviceData, err := service.LoadDataFile(serviceDir)
 		if err != nil {
 			color.Red(fmt.Errorf("failed to load service: %w", err).Error())
 			os.Exit(1)
 		}
 
-		service, err := service.Load(sericeDir, args[0])
+		service, err := service.Load(serviceDir)
 		if err != nil {
 			color.Red(fmt.Errorf("failed to load service: %w", err).Error())
 			os.Exit(1)

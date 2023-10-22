@@ -16,15 +16,13 @@ var (
 )
 
 // Load a service from disk
-func Load(dir, serviceName string) (*desc.ServiceDescriptor, error) {
-	path := filepath.Join(dir, serviceName)
-
-	data, err := LoadDataFile(path)
+func Load(serviceDir string) (*desc.ServiceDescriptor, error) {
+	data, err := LoadDataFile(serviceDir)
 	if err != nil {
 		return nil, err
 	}
 
-	descrSet, err := loadDescriptorSet(data.File, data.DependentFiles, path)
+	descrSet, err := loadDescriptorSet(data.File, data.DependentFiles, serviceDir)
 	if err != nil {
 		return nil, err
 	}
