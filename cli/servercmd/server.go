@@ -6,6 +6,7 @@ import (
 
 func init() {
 	ServerCmd.AddCommand(StartCmd)
+	ServerCmd.AddCommand(CreateDefaultsCmd)
 }
 
 var ServerCmd = &cobra.Command{

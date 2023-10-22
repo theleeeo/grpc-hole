@@ -11,8 +11,9 @@ func init() {
 }
 
 var ServiceCmd = &cobra.Command{
-	Use:   "service",
-	Short: "Manage services",
+	Use:     "service",
+	Aliases: []string{"services"},
+	Short:   "Manage services",
 	Run: func(cmd *cobra.Command, args []string) {
 		_ = cmd.Help()
 	},

@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/TheLeeeo/grpc-hole/service"
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/dynamic"
 	"google.golang.org/grpc"
@@ -67,21 +68,27 @@ func handleRequest(stream grpc.ServerStream, method *desc.MethodDescriptor) erro
 	}
 
 	m, _ := msg.MarshalJSON()
-	fmt.Println(string(m))
+	fmt.Println("Received request:", string(m))
 
 	outType := method.GetOutputType()
-	out := createPopulatedMessage(outType)
+
+	out, err := service.LoadResponse(method.GetService().GetName(), method.GetName(), outType)
+	if err != nil {
+		return err
+	}
+
+	// out := CreatePopulatedMessage(outType)
 
 	return stream.SendMsg(out)
 }
 
-func createPopulatedMessage(f *desc.MessageDescriptor) *dynamic.Message {
+func CreatePopulatedMessage(f *desc.MessageDescriptor) *dynamic.Message {
 	msg := dynamic.NewMessage(f)
 	for _, field := range f.GetFields() {
 		var value any
 		switch field.GetType() {
 		case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
-			value = createPopulatedMessage(field.GetMessageType())
+			value = CreatePopulatedMessage(field.GetMessageType())
 		case descriptorpb.FieldDescriptorProto_TYPE_STRING:
 			value = "Hello World"
 		case descriptorpb.FieldDescriptorProto_TYPE_INT32,
@@ -104,6 +111,8 @@ func createPopulatedMessage(f *desc.MessageDescriptor) *dynamic.Message {
 			value = []byte("Hello World")
 		case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
 			value = 1
+		default:
+			panic(fmt.Errorf("unhandled type: %s", field.GetType()))
 		}
 		if field.GetLabel() == descriptorpb.FieldDescriptorProto_LABEL_REPEATED {
 			msg.AddRepeatedField(field, value)

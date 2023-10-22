@@ -11,6 +11,10 @@ import (
 	"github.com/jhump/protoreflect/desc"
 )
 
+const (
+	dependencyDirName = "deps"
+)
+
 // Persist a service to disk
 func Save(dir string, serv *desc.ServiceDescriptor) error {
 	data := &serviceData{
@@ -23,23 +27,23 @@ func Save(dir string, serv *desc.ServiceDescriptor) error {
 		return err
 	}
 
-	path := filepath.Join(dir, serv.GetName())
-
+	servicePath := filepath.Join(dir, serv.GetName())
+	depPath := filepath.Join(servicePath, dependencyDirName)
 	// save the service file to disk
-	if err := saveFileDesc(serv.GetFile(), path); err != nil {
+	if err := saveFileDesc(serv.GetFile(), depPath); err != nil {
 		return err
 	}
 
 	// save all dependencies to disk
 	fileNameCache := make(map[string]struct{})
-	saveDepRec(serv.GetFile(), fileNameCache, path)
+	saveDepRec(serv.GetFile(), fileNameCache, depPath)
 
 	for fileName := range fileNameCache {
 		data.DependentFiles = append(data.DependentFiles, fileName)
 	}
 
 	// save the service data to a file
-	if err := saveDataFile(data, path); err != nil {
+	if err := saveDataFile(data, servicePath); err != nil {
 		return err
 	}
 

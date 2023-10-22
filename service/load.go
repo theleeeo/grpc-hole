@@ -44,11 +44,11 @@ func Load(dir, serviceName string) (*desc.ServiceDescriptor, error) {
 
 func loadDescriptorSet(mainFile string, deps []string, path string) (*descriptorpb.FileDescriptorSet, error) {
 	descriptorSet := &descriptorpb.FileDescriptorSet{}
-
+	depPath := filepath.Join(path, dependencyDirName)
 	// Load all dependencies
 	for _, fileName := range deps {
 		descFile := &descriptorpb.FileDescriptorProto{}
-		if err := utils.ProtoLoadAndUnmarshal(filepath.Join(path, fileName), descFile); err != nil {
+		if err := utils.ProtoLoadAndUnmarshal(filepath.Join(depPath, fileName), descFile); err != nil {
 			return nil, err
 		}
 		descriptorSet.File = append(descriptorSet.File, descFile)
@@ -56,7 +56,7 @@ func loadDescriptorSet(mainFile string, deps []string, path string) (*descriptor
 
 	// Load the service
 	descFile := &descriptorpb.FileDescriptorProto{}
-	if err := utils.ProtoLoadAndUnmarshal(filepath.Join(path, mainFile), descFile); err != nil {
+	if err := utils.ProtoLoadAndUnmarshal(filepath.Join(depPath, mainFile), descFile); err != nil {
 		return nil, err
 	}
 	descriptorSet.File = append(descriptorSet.File, descFile)
