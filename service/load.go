@@ -64,8 +64,8 @@ func loadDescriptorSet(mainFile string, deps []string, path string) (*descriptor
 	return descriptorSet, nil
 }
 
-func LoadDataFile(dirPath string) (*serviceData, error) {
-	data, err := os.ReadFile(filepath.Join(dirPath, ServiceDataFileName))
+func LoadDataFile(servicePath string) (*serviceData, error) {
+	data, err := os.ReadFile(filepath.Join(servicePath, ServiceDataFileName))
 	if err != nil {
 		return nil, err
 	}
