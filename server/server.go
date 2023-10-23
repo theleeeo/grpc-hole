@@ -26,7 +26,3 @@ func New(cfg *Config) (*Server, error) {
 		lg:      cfg.Logger,
 	}, nil
 }
-
-func (s *Server) Run() error {
-	return nil
-}

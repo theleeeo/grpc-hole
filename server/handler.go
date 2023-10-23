@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -41,23 +42,43 @@ func getMethodName(fullName string) string {
 }
 
 func (s *Server) handleRequest(stream grpc.ServerStream, method *desc.MethodDescriptor) error {
-	msg := dynamic.NewMessage(method.GetInputType())
-	if err := stream.RecvMsg(msg); err != nil {
+	inputMsg := dynamic.NewMessage(method.GetInputType())
+	if err := stream.RecvMsg(inputMsg); err != nil {
 		return err
 	}
 
-	m, _ := msg.MarshalJSON()
-	s.lg.Info("Received request", "Method", method.GetName(), "Input", string(m))
+	inputJSON, _ := inputMsg.MarshalJSON()
+	s.lg.Info("Received request", "Method", method.GetName(), "Input", string(inputJSON))
 
 	outType := method.GetOutputType()
+	var out *dynamic.Message
 
-	out, err := service.LoadResponse(method.GetService().GetName(), method.GetName(), outType)
+	respTemplate, err := service.LoadResponse(method.GetService().GetName(), method.GetName())
 	if err != nil {
 		// If the error is something else than "file not found", return it.
 		if !os.IsNotExist(err) {
 			return err
 		}
 		out = CreatePopulatedMessage(outType)
+	}
+
+	if respTemplate != nil {
+		var inputMap map[string]any
+		if err := json.Unmarshal(inputJSON, &inputMap); err != nil {
+			return err
+		}
+
+		outJson, err := service.ParseTemplate(inputMap, respTemplate)
+		if err != nil {
+			s.lg.Error("Failed to parse template", "Method", method.GetName(), "Error", err)
+			return err
+		}
+
+		out = dynamic.NewMessage(outType)
+		if err := out.UnmarshalJSON(outJson); err != nil {
+			s.lg.Error("Failed to unmarshal json", "Method", method.GetName(), "Error", err)
+			return err
+		}
 	}
 
 	return stream.SendMsg(out)

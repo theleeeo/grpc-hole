@@ -1,12 +1,12 @@
 package service
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 
 	"github.com/TheLeeeo/grpc-hole/cli/vars"
-	"github.com/jhump/protoreflect/desc"
-	"github.com/jhump/protoreflect/dynamic"
+	"github.com/TheLeeeo/grpc-hole/templateparse"
 	"github.com/spf13/viper"
 )
 
@@ -38,7 +38,7 @@ func createDir(path string) error {
 	return nil
 }
 
-func LoadResponse(serviceName, methodName string, mDesc *desc.MessageDescriptor) (*dynamic.Message, error) {
+func LoadResponse(serviceName, methodName string) ([]byte, error) {
 	baseDir := viper.GetString(vars.SerivceDirKey)
 	responseDir := filepath.Join(baseDir, serviceName, responsesDirName)
 	path := filepath.Join(responseDir, methodName+".json")
@@ -48,10 +48,19 @@ func LoadResponse(serviceName, methodName string, mDesc *desc.MessageDescriptor)
 		return nil, err
 	}
 
-	msg := dynamic.NewMessage(mDesc)
-	if err := msg.UnmarshalJSON(data); err != nil {
+	return data, nil
+}
+
+func ParseTemplate(input map[string]any, template []byte) ([]byte, error) {
+	var templateMap map[string]any
+	if err := json.Unmarshal(template, &templateMap); err != nil {
 		return nil, err
 	}
 
-	return msg, nil
+	out, err := templateparse.ParseTemplate(input, templateMap)
+	if err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(out)
 }

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/TheLeeeo/grpc-hole/utils"
@@ -55,7 +54,7 @@ func saveDepRec(file *desc.FileDescriptor, fileNameCache map[string]struct{}, pa
 	for _, dep := range file.GetDependencies() {
 		// File already saved
 		if _, ok := fileNameCache[dep.GetName()]; ok {
-			break
+			continue
 		}
 		fileNameCache[dep.GetName()] = struct{}{}
 
@@ -69,11 +68,6 @@ func saveDepRec(file *desc.FileDescriptor, fileNameCache map[string]struct{}, pa
 	}
 
 	return nil
-}
-
-func extractServiceName(fullName string) string {
-	nameParts := strings.Split(fullName, ".")
-	return nameParts[len(nameParts)-1]
 }
 
 func deleteDir(path string) error {

@@ -18,25 +18,27 @@ func CreatePopulatedMessage(f *desc.MessageDescriptor) *dynamic.Message {
 		case descriptorpb.FieldDescriptorProto_TYPE_STRING:
 			value = "Hello World"
 		case descriptorpb.FieldDescriptorProto_TYPE_INT32,
-			descriptorpb.FieldDescriptorProto_TYPE_INT64,
 			descriptorpb.FieldDescriptorProto_TYPE_UINT32,
-			descriptorpb.FieldDescriptorProto_TYPE_UINT64,
 			descriptorpb.FieldDescriptorProto_TYPE_SINT32,
-			descriptorpb.FieldDescriptorProto_TYPE_SINT64,
 			descriptorpb.FieldDescriptorProto_TYPE_FIXED32,
+			descriptorpb.FieldDescriptorProto_TYPE_SFIXED32:
+			value = int32(123)
+		case descriptorpb.FieldDescriptorProto_TYPE_INT64,
+			descriptorpb.FieldDescriptorProto_TYPE_UINT64,
+			descriptorpb.FieldDescriptorProto_TYPE_SINT64,
 			descriptorpb.FieldDescriptorProto_TYPE_FIXED64,
-			descriptorpb.FieldDescriptorProto_TYPE_SFIXED32,
 			descriptorpb.FieldDescriptorProto_TYPE_SFIXED64:
-			value = 123
+			value = int64(123)
 		case descriptorpb.FieldDescriptorProto_TYPE_BOOL:
 			value = true
-		case descriptorpb.FieldDescriptorProto_TYPE_DOUBLE,
-			descriptorpb.FieldDescriptorProto_TYPE_FLOAT:
-			value = 123.123
+		case descriptorpb.FieldDescriptorProto_TYPE_FLOAT:
+			value = float32(123.123)
+		case descriptorpb.FieldDescriptorProto_TYPE_DOUBLE:
+			value = float64(123.123)
 		case descriptorpb.FieldDescriptorProto_TYPE_BYTES:
 			value = []byte("Hello World")
 		case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
-			value = 1
+			value = int32(1)
 		default:
 			panic(fmt.Errorf("unhandled type: %s", field.GetType()))
 		}
