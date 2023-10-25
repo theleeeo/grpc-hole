@@ -1,3 +1,7 @@
 # TODO
 
-- Create a MethodHandler that deals with one perticular method. This will handle all template parsing
+- Add a uuid funciton to the templates
+
+## Maybe?
+
+- A "Response" type, containing multiple condition-response pairs that are checked

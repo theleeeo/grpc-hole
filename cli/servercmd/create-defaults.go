@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/TheLeeeo/grpc-hole/cli/vars"
-	"github.com/TheLeeeo/grpc-hole/server"
+	"github.com/TheLeeeo/grpc-hole/server/methodhandler"
 	"github.com/TheLeeeo/grpc-hole/service"
 	"github.com/fatih/color"
 	"github.com/jhump/protoreflect/desc"
@@ -46,7 +46,7 @@ var CreateDefaultsCmd = &cobra.Command{
 }
 
 func CreateDefaultResponseFile(method *desc.MethodDescriptor, methodDir string) error {
-	msg := server.CreatePopulatedMessage(method.GetOutputType())
+	msg := methodhandler.CreatePopulatedMessage(method.GetOutputType())
 	b, err := msg.MarshalJSON()
 	if err != nil {
 		return err
