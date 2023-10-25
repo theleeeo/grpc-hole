@@ -2,14 +2,19 @@ package templateparse
 
 import (
 	"bytes"
+	"fmt"
+	"reflect"
 	"text/template"
+
+	"github.com/TheLeeeo/grpc-hole/fieldselector"
 )
 
-func ParseTemplate(input map[string]any, outTemplate map[string]any) (map[string]any, []ParseError) {
+func ParseTemplate(l fieldselector.Selection, input map[string]any, outTemplate map[string]any) (map[string]any, []ParseError) {
 	outputTemplate := make(map[string]any)
 	var errors []ParseError
 	for key, value := range outTemplate {
-		v, err := ParseField(input, value)
+		fmt.Println("Parsing key", key)
+		v, err := ParseField(l.AppendField(key), input, value)
 		if err != nil {
 			errors = append(errors, err...)
 		}
@@ -19,28 +24,39 @@ func ParseTemplate(input map[string]any, outTemplate map[string]any) (map[string
 	return outputTemplate, errors
 }
 
-func ParseField(input map[string]any, field any) (any, []ParseError) {
+func ParseField(l fieldselector.Selection, input map[string]any, field any) (any, []ParseError) {
 	switch f := field.(type) {
 	case string: // All strings should be interpreted as a template
-		v, err := GenerateFieldValue(input, f)
+		fmt.Println("Parsing string", f)
+		v, err := GenerateFieldValue(l, input, f)
 		if err != nil {
 			return v, []ParseError{err}
 		}
 		return v, nil
 	case map[string]any: // Deal with nested maps
-		return ParseTemplate(input, f)
-	case []any:
-		return ParseArray(input, f)
+		return ParseTemplate(l, input, f)
 	default:
+		if reflect.TypeOf(f).Kind() == reflect.Slice || reflect.TypeOf(f).Kind() == reflect.Array {
+			fmt.Println("Parsing array")
+			return ParseArray(l, input, convertToArray(f))
+		}
 		return f, nil
 	}
 }
+func convertToArray(input interface{}) []any {
+	arr := reflect.ValueOf(input)
+	out := make([]any, arr.Len())
+	for i := 0; i < arr.Len(); i++ {
+		out[i] = arr.Index(i).Interface()
+	}
+	return out
+}
 
-func ParseArray(input map[string]any, array []any) ([]any, []ParseError) {
+func ParseArray(l fieldselector.Selection, input map[string]any, array []any) ([]any, []ParseError) {
 	outSlice := make([]any, len(array))
 	var errors []ParseError
 	for i, val := range array {
-		v, err := ParseField(input, val)
+		v, err := ParseField(l.SetIndex(i), input, val)
 		if err != nil {
 			errors = append(errors, err...)
 		}
@@ -50,22 +66,22 @@ func ParseArray(input map[string]any, array []any) ([]any, []ParseError) {
 	return outSlice, errors
 }
 
-func GenerateFieldValue(input map[string]any, fieldTemplate string) (string, ParseError) {
+func GenerateFieldValue(l fieldselector.Selection, input map[string]any, fieldTemplate string) (string, ParseError) {
 	tmpl, err := template.New("inputParser").Parse(fieldTemplate)
 	if err != nil {
-		return "<no value>", ParseErrorWrap("", err)
+		return "<no value>", ParseErrorWrap(l, err)
 	}
 
 	var buf bytes.Buffer
 	err = tmpl.Execute(&buf, input)
 	if err != nil {
-		return "<no value>", ParseErrorWrap("", err)
+		return "<no value>", ParseErrorWrap(l, err)
 	}
 
 	str := buf.String()
 
 	if str == "<no value>" {
-		return str, NewParseError("", "No value found")
+		return str, NewParseError(l, "No value found")
 	}
 
 	return buf.String(), nil

@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/TheLeeeo/grpc-hole/fieldselector"
 )
 
 func Test_ParseTemplate(t *testing.T) {
@@ -20,7 +22,7 @@ func Test_ParseTemplate(t *testing.T) {
 		"foo": "bar",
 		"baz": "1", // TODO: Should this be an int?
 	}
-	actual, err := ParseTemplate(input, outTemplate)
+	actual, err := ParseTemplate(fieldselector.Root, input, outTemplate)
 	fmt.Println(actual, err)
 	if err != nil {
 		t.Error(err)
@@ -49,7 +51,7 @@ func Test_ParseTemplate_NonStringsInTemplate(t *testing.T) {
 			"buzz": 1.2,
 		},
 	}
-	actual, err := ParseTemplate(input, outTemplate)
+	actual, err := ParseTemplate(fieldselector.Root, input, outTemplate)
 	if err != nil {
 		t.Error(err)
 	}
@@ -75,7 +77,7 @@ func Test_ParseTemplate_Nested(t *testing.T) {
 			"baz": "1",
 		},
 	}
-	actual, err := ParseTemplate(input, outTemplate)
+	actual, err := ParseTemplate(fieldselector.Root, input, outTemplate)
 	if err != nil {
 		t.Error(err)
 	}
@@ -101,7 +103,7 @@ func Test_ParseTemplate_NestedArray(t *testing.T) {
 			"1",
 		},
 	}
-	actual, err := ParseTemplate(input, outTemplate)
+	actual, err := ParseTemplate(fieldselector.Root, input, outTemplate)
 	if err != nil {
 		t.Error(err)
 	}
@@ -121,9 +123,9 @@ func Test_ParseTemplate_Float(t *testing.T) {
 	}
 	expected := map[string]any{
 		"foo": "bar",
-		"baz": "1.1", // TODO: Should this be a float?
+		"baz": "1.1",
 	}
-	actual, err := ParseTemplate(input, outTemplate)
+	actual, err := ParseTemplate(fieldselector.Root, input, outTemplate)
 	if err != nil {
 		t.Error(err)
 	}
@@ -145,7 +147,7 @@ func Test_ParseTemplate_Bool(t *testing.T) {
 		"foo": "bar",
 		"baz": "true",
 	}
-	actual, err := ParseTemplate(input, outTemplate)
+	actual, err := ParseTemplate(fieldselector.Root, input, outTemplate)
 	if err != nil {
 		t.Error(err)
 	}
@@ -175,7 +177,7 @@ func Test_ParseTemplate_NestedArrayWithMap(t *testing.T) {
 			},
 		},
 	}
-	actual, err := ParseTemplate(input, outTemplate)
+	actual, err := ParseTemplate(fieldselector.Root, input, outTemplate)
 	if err != nil {
 		t.Error(err)
 	}
@@ -205,7 +207,7 @@ func Test_ParseTemplate_TemplateLogic(t *testing.T) {
 			},
 		},
 	}
-	actual, err := ParseTemplate(input, outTemplate)
+	actual, err := ParseTemplate(fieldselector.Root, input, outTemplate)
 	if err != nil {
 		t.Error(err)
 	}
@@ -235,7 +237,7 @@ func Test_ParseTemplate_TemplateLogic_Empty(t *testing.T) {
 			},
 		},
 	}
-	actual, err := ParseTemplate(input, outTemplate)
+	actual, err := ParseTemplate(fieldselector.Root, input, outTemplate)
 	if err != nil {
 		t.Error(err)
 	}
@@ -257,16 +259,18 @@ func Test_ParseTemplate_InvalidTemplate(t *testing.T) {
 		"foo": "bar",
 		"baz": "<no value>",
 	}
-	actual, err := ParseTemplate(input, outTemplate)
+	actual, err := ParseTemplate(fieldselector.Root, input, outTemplate)
 	if err == nil {
 		t.Error(err)
 	}
 	if len(err) != 1 {
 		t.Errorf("Expected 1 error, got %v", err)
 	}
-	fmt.Println(err[0].Error())
 	if !strings.Contains(err[0].Error(), "unclosed action") {
 		t.Errorf("Expected \"unclosed action\", got %v", err[0])
+	}
+	if err[0].Location() != ".baz" {
+		t.Errorf("Expected \".baz\", got %v", err[0].Location())
 	}
 	if !reflect.DeepEqual(expected, actual) {
 		t.Errorf("Expected %v, got %v", expected, actual)
@@ -286,7 +290,7 @@ func Test_ParseTemplate_InvalidSelector(t *testing.T) {
 		"foo": "bar",
 		"baz": "<no value>",
 	}
-	actual, err := ParseTemplate(input, outTemplate)
+	actual, err := ParseTemplate(fieldselector.Root, input, outTemplate)
 	if err == nil {
 		t.Error(err)
 	}
@@ -295,6 +299,9 @@ func Test_ParseTemplate_InvalidSelector(t *testing.T) {
 	}
 	if err[0].Error() != "No value found" {
 		t.Errorf("Expected \"No value found\", got %v", err)
+	}
+	if err[0].Location() != ".baz" {
+		t.Errorf("Expected \".baz\", got %v", err[0].Location())
 	}
 	if !reflect.DeepEqual(expected, actual) {
 		t.Errorf("Expected %v, got %v", expected, actual)
@@ -314,7 +321,7 @@ func Test_ParseTemplate_TemplateNotMatch(t *testing.T) {
 		"bar":  "bar",
 		"fizz": "<no value>",
 	}
-	actual, err := ParseTemplate(input, outTemplate)
+	actual, err := ParseTemplate(fieldselector.Root, input, outTemplate)
 	if err == nil {
 		t.Error(err)
 	}
@@ -323,6 +330,9 @@ func Test_ParseTemplate_TemplateNotMatch(t *testing.T) {
 	}
 	if err[0].Error() != "No value found" {
 		t.Errorf("Expected \"No value found\", got %v", err)
+	}
+	if err[0].Location() != ".fizz" {
+		t.Errorf("Expected \".fizz\", got %v", err[0].Location())
 	}
 	if !reflect.DeepEqual(expected, actual) {
 		t.Errorf("Expected %v, got %v", expected, actual)
@@ -342,9 +352,65 @@ func Test_ParseTemplate_TemplateDifferButCurrect(t *testing.T) {
 		"bar":  "bar",
 		"fizz": "true",
 	}
-	actual, err := ParseTemplate(input, outTemplate)
+	actual, err := ParseTemplate(fieldselector.Root, input, outTemplate)
 	if err != nil {
 		t.Error(err)
+	}
+	if !reflect.DeepEqual(expected, actual) {
+		t.Errorf("Expected %v, got %v", expected, actual)
+	}
+}
+
+// This test fails sometimes because the order of errors is not guaranteed.
+func Test_ErrorsInNestedPlace(t *testing.T) {
+	input := map[string]any{
+		"foo": "bar",
+		"baz": true,
+	}
+	outTemplate := map[string]any{
+		"bar": []any{"{{.bad}}", "{{.bad"},
+		"fizz": map[string]any{
+			"buzz": "{{.bad}}",
+			"test": []any{"{{.baz}}", "{{.bad"},
+		},
+	}
+	expected := map[string]any{
+		"bar": []any{"<no value>", "<no value>"},
+		"fizz": map[string]any{
+			"buzz": "<no value>",
+			"test": []any{"true", "<no value>"},
+		},
+	}
+	actual, err := ParseTemplate(fieldselector.Root, input, outTemplate)
+	if err == nil {
+		t.Error(err)
+	}
+	if len(err) != 4 {
+		t.Errorf("Expected 4 errors, got %v", err)
+	}
+	if !strings.Contains(err[0].Error(), "No value found") {
+		t.Errorf("Expected \"No value found\", got %v", err)
+	}
+	if err[0].Location() != ".bar[0]" {
+		t.Errorf("Expected \".bar[0]\", got %v", err[0].Location())
+	}
+	if !strings.Contains(err[1].Error(), "unclosed action") {
+		t.Errorf("Expected \"unclosed action\", got %v", err[1])
+	}
+	if err[1].Location() != ".bar[1]" {
+		t.Errorf("Expected \".bar[1]\", got %v", err[1].Location())
+	}
+	if !strings.Contains(err[2].Error(), "No value found") {
+		t.Errorf("Expected \"No value found\", got %v", err[2])
+	}
+	if err[2].Location() != ".fizz.buzz" {
+		t.Errorf("Expected \".fizz.buzz\", got %v", err[2].Location())
+	}
+	if !strings.Contains(err[3].Error(), "unclosed action") {
+		t.Errorf("Expected \"unclosed action\", got %v", err[3])
+	}
+	if err[3].Location() != ".fizz.test[1]" {
+		t.Errorf("Expected \".fizz.test[1]\", got %v", err[3].Location())
 	}
 	if !reflect.DeepEqual(expected, actual) {
 		t.Errorf("Expected %v, got %v", expected, actual)

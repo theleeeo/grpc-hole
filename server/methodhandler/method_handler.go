@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
+	"github.com/TheLeeeo/grpc-hole/fieldselector"
 	"github.com/TheLeeeo/grpc-hole/service"
 	"github.com/TheLeeeo/grpc-hole/templateparse"
 	"github.com/hashicorp/go-hclog"
@@ -65,11 +66,11 @@ func (h *methodHandler) Handle(stream grpc.ServerStream) error {
 			return err
 		}
 
-		outMap, parseErr := templateparse.ParseTemplate(inputMap, templateMap)
-		if parseErr != nil {
-			// Parsing a template proceeds even if there are errors.
-			// We log the errors and continue.
-			h.lg.Warn("Encountered errors parsing template", "Method", h.method.GetName(), "Errors", parseErr)
+		outMap, parseErrs := templateparse.ParseTemplate(fieldselector.Root, inputMap, templateMap)
+		// Parsing a template proceeds even if there are errors.
+		// We log any the errors and continue.
+		for _, err := range parseErrs {
+			h.lg.Warn("Encountered error parsing template", "error", err, "location", err.Location())
 		}
 
 		outJson, err := json.Marshal(outMap)
