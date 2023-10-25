@@ -2,68 +2,71 @@ package templateparse
 
 import (
 	"bytes"
-	"fmt"
 	"text/template"
 )
 
-func ParseTemplate(input map[string]any, outTemplate map[string]any) (map[string]any, error) {
+func ParseTemplate(input map[string]any, outTemplate map[string]any) (map[string]any, []ParseError) {
 	outputTemplate := make(map[string]any)
+	var errors []ParseError
 	for key, value := range outTemplate {
 		v, err := ParseField(input, value)
 		if err != nil {
-			return nil, err
+			errors = append(errors, err...)
 		}
 		outputTemplate[key] = v
 	}
 
-	return outputTemplate, nil
+	return outputTemplate, errors
 }
 
-func ParseField(input map[string]any, field any) (any, error) {
-	var out any
-	var err error
-	switch val := field.(type) {
+func ParseField(input map[string]any, field any) (any, []ParseError) {
+	switch f := field.(type) {
 	case string: // All strings should be interpreted as a template
-		out, err = GenerateFieldValue(input, val)
+		v, err := GenerateFieldValue(input, f)
 		if err != nil {
-			return nil, err
+			return v, []ParseError{err}
 		}
+		return v, nil
 	case map[string]any: // Deal with nested maps
-		out, err = ParseTemplate(input, val)
-		if err != nil {
-			return nil, err
-		}
+		return ParseTemplate(input, f)
 	case []any:
-		outSlice := make([]any, len(val))
-		for i, v := range val {
-			outSlice[i], err = ParseField(input, v)
-			if err != nil {
-				return nil, err
-			}
-		}
-		out = outSlice
+		return ParseArray(input, f)
 	default:
-		out = val
+		return f, nil
+	}
+}
+
+func ParseArray(input map[string]any, array []any) ([]any, []ParseError) {
+	outSlice := make([]any, len(array))
+	var errors []ParseError
+	for i, val := range array {
+		v, err := ParseField(input, val)
+		if err != nil {
+			errors = append(errors, err...)
+		}
+		outSlice[i] = v
 	}
 
-	return out, nil
+	return outSlice, errors
 }
 
-// TODO: Return a interface{} instead of a string
-func GenerateFieldValue(input map[string]any, fieldTemplate string) (string, error) {
+func GenerateFieldValue(input map[string]any, fieldTemplate string) (string, ParseError) {
 	tmpl, err := template.New("inputParser").Parse(fieldTemplate)
 	if err != nil {
-		return "", err
+		return "<no value>", ParseErrorWrap("", err)
 	}
 
 	var buf bytes.Buffer
 	err = tmpl.Execute(&buf, input)
 	if err != nil {
-		fmt.Println("Error executing template:", err)
-		return "", err
+		return "<no value>", ParseErrorWrap("", err)
 	}
 
-	stringReturn := buf.String()
+	str := buf.String()
 
-	return stringReturn, nil
+	if str == "<no value>" {
+		return str, NewParseError("", "No value found")
+	}
+
+	return buf.String(), nil
 }

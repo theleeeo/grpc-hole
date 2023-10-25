@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/TheLeeeo/grpc-hole/service"
+	"github.com/TheLeeeo/grpc-hole/templateparse"
 	"github.com/hashicorp/go-hclog"
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/dynamic"
@@ -59,9 +60,21 @@ func (h *methodHandler) Handle(stream grpc.ServerStream) error {
 			return err
 		}
 
-		outJson, err := service.ParseTemplate(inputMap, respTemplate)
+		var templateMap map[string]any
+		if err := json.Unmarshal(respTemplate, &templateMap); err != nil {
+			return err
+		}
+
+		outMap, parseErr := templateparse.ParseTemplate(inputMap, templateMap)
+		if parseErr != nil {
+			// Parsing a template proceeds even if there are errors.
+			// We log the errors and continue.
+			h.lg.Warn("Encountered errors parsing template", "Method", h.method.GetName(), "Errors", parseErr)
+		}
+
+		outJson, err := json.Marshal(outMap)
 		if err != nil {
-			h.lg.Error("Failed to parse template", "Method", h.method.GetName(), "Error", err)
+			h.lg.Error("Failed to marshal json", "Method", h.method.GetName(), "Error", err)
 			return err
 		}
 

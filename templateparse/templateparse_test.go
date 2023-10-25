@@ -1,7 +1,9 @@
 package templateparse
 
 import (
+	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -19,6 +21,7 @@ func Test_ParseTemplate(t *testing.T) {
 		"baz": "1", // TODO: Should this be an int?
 	}
 	actual, err := ParseTemplate(input, outTemplate)
+	fmt.Println(actual, err)
 	if err != nil {
 		t.Error(err)
 	}
@@ -140,7 +143,7 @@ func Test_ParseTemplate_Bool(t *testing.T) {
 	}
 	expected := map[string]any{
 		"foo": "bar",
-		"baz": "true", // TODO: Should this be a bool?
+		"baz": "true",
 	}
 	actual, err := ParseTemplate(input, outTemplate)
 	if err != nil {
@@ -256,7 +259,14 @@ func Test_ParseTemplate_InvalidTemplate(t *testing.T) {
 	}
 	actual, err := ParseTemplate(input, outTemplate)
 	if err == nil {
-		t.Errorf("Expected error, got %v", actual)
+		t.Error(err)
+	}
+	if len(err) != 1 {
+		t.Errorf("Expected 1 error, got %v", err)
+	}
+	fmt.Println(err[0].Error())
+	if !strings.Contains(err[0].Error(), "unclosed action") {
+		t.Errorf("Expected \"unclosed action\", got %v", err[0])
 	}
 	if !reflect.DeepEqual(expected, actual) {
 		t.Errorf("Expected %v, got %v", expected, actual)
@@ -277,8 +287,14 @@ func Test_ParseTemplate_InvalidSelector(t *testing.T) {
 		"baz": "<no value>",
 	}
 	actual, err := ParseTemplate(input, outTemplate)
-	if err != nil {
+	if err == nil {
 		t.Error(err)
+	}
+	if len(err) != 1 {
+		t.Errorf("Expected 1 error, got %v", err)
+	}
+	if err[0].Error() != "No value found" {
+		t.Errorf("Expected \"No value found\", got %v", err)
 	}
 	if !reflect.DeepEqual(expected, actual) {
 		t.Errorf("Expected %v, got %v", expected, actual)
@@ -299,8 +315,14 @@ func Test_ParseTemplate_TemplateNotMatch(t *testing.T) {
 		"fizz": "<no value>",
 	}
 	actual, err := ParseTemplate(input, outTemplate)
-	if err != nil {
+	if err == nil {
 		t.Error(err)
+	}
+	if len(err) != 1 {
+		t.Errorf("Expected 1 error, got %v", err)
+	}
+	if err[0].Error() != "No value found" {
+		t.Errorf("Expected \"No value found\", got %v", err)
 	}
 	if !reflect.DeepEqual(expected, actual) {
 		t.Errorf("Expected %v, got %v", expected, actual)
