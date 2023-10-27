@@ -2,7 +2,6 @@ package templateparse
 
 import (
 	"bytes"
-	"fmt"
 	"reflect"
 	"text/template"
 
@@ -13,7 +12,6 @@ func ParseTemplate(l fieldselector.Selection, input map[string]any, outTemplate 
 	outputTemplate := make(map[string]any)
 	var errors []ParseError
 	for key, value := range outTemplate {
-		fmt.Println("Parsing key", key)
 		v, err := ParseField(l.AppendField(key), input, value)
 		if err != nil {
 			errors = append(errors, err...)
@@ -27,7 +25,6 @@ func ParseTemplate(l fieldselector.Selection, input map[string]any, outTemplate 
 func ParseField(l fieldselector.Selection, input map[string]any, field any) (any, []ParseError) {
 	switch f := field.(type) {
 	case string: // All strings should be interpreted as a template
-		fmt.Println("Parsing string", f)
 		v, err := GenerateFieldValue(l, input, f)
 		if err != nil {
 			return v, []ParseError{err}
@@ -37,7 +34,6 @@ func ParseField(l fieldselector.Selection, input map[string]any, field any) (any
 		return ParseTemplate(l, input, f)
 	default:
 		if reflect.TypeOf(f).Kind() == reflect.Slice || reflect.TypeOf(f).Kind() == reflect.Array {
-			fmt.Println("Parsing array")
 			return ParseArray(l, input, convertToArray(f))
 		}
 		return f, nil
@@ -67,7 +63,7 @@ func ParseArray(l fieldselector.Selection, input map[string]any, array []any) ([
 }
 
 func GenerateFieldValue(l fieldselector.Selection, input map[string]any, fieldTemplate string) (string, ParseError) {
-	tmpl, err := template.New("inputParser").Parse(fieldTemplate)
+	tmpl, err := template.New("inputParser").Funcs(funcMap).Parse(fieldTemplate)
 	if err != nil {
 		return "<no value>", ParseErrorWrap(l, err)
 	}

@@ -1,12 +1,12 @@
 package templateparse
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/TheLeeeo/grpc-hole/fieldselector"
+	"github.com/google/uuid"
 )
 
 func Test_ParseTemplate(t *testing.T) {
@@ -23,7 +23,6 @@ func Test_ParseTemplate(t *testing.T) {
 		"baz": "1", // TODO: Should this be an int?
 	}
 	actual, err := ParseTemplate(fieldselector.Root, input, outTemplate)
-	fmt.Println(actual, err)
 	if err != nil {
 		t.Error(err)
 	}
@@ -414,5 +413,22 @@ func Test_ErrorsInNestedPlace(t *testing.T) {
 	}
 	if !reflect.DeepEqual(expected, actual) {
 		t.Errorf("Expected %v, got %v", expected, actual)
+	}
+}
+
+func Test_WithUUID(t *testing.T) {
+	outTemplate := map[string]any{
+		"test": "{{uuid}}",
+	}
+	actual, parseError := ParseTemplate(fieldselector.Root, nil, outTemplate)
+	if parseError != nil {
+		t.Error(parseError)
+	}
+	id, err := uuid.Parse(actual["test"].(string))
+	if err != nil {
+		t.Error(err)
+	}
+	if id.Version().String() != "VERSION_4" {
+		t.Errorf("Expected UUIDv4, got %v", id.Version())
 	}
 }

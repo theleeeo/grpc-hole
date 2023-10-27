@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	github.com/fatih/color v1.14.1
+	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-hclog v1.5.0
 	github.com/jhump/protoreflect v1.15.1
 	github.com/spf13/cobra v1.7.0
