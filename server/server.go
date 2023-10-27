@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/TheLeeeo/grpc-hole/server/methodhandler"
+	"github.com/TheLeeeo/grpc-hole/methodhandler"
 	"github.com/hashicorp/go-hclog"
 	"github.com/jhump/protoreflect/desc"
 )
@@ -9,7 +9,7 @@ import (
 type Server struct {
 	service *desc.ServiceDescriptor
 
-	methods map[string]methodhandler.MethodHandler
+	methods map[string]methodhandler.Handler
 
 	lg hclog.Logger
 }
@@ -24,10 +24,10 @@ func New(cfg *Config) (*Server, error) {
 		return nil, err
 	}
 
-	methodHandlers := make(map[string]methodhandler.MethodHandler)
+	methodHandlers := make(map[string]methodhandler.Handler)
 	for _, method := range cfg.Service.GetMethods() {
 		cfg.Logger.Debug("Registering method", "Method", method.GetName())
-		methodHandlers[method.GetName()] = methodhandler.New(method, cfg.Logger)
+		methodHandlers[method.GetName()] = methodhandler.NewDynamicHandler(method, cfg.Logger)
 	}
 
 	return &Server{

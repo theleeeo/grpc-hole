@@ -13,28 +13,24 @@ import (
 	"google.golang.org/grpc"
 )
 
-type MethodHandler interface {
-	Name() string
-	Handle(stream grpc.ServerStream) error
-}
-
-type methodHandler struct {
+// A dynamic handler returns a response based on a template file.
+type dynamicHandler struct {
 	method *desc.MethodDescriptor
 	lg     hclog.Logger
 }
 
-func New(method *desc.MethodDescriptor, logger hclog.Logger) MethodHandler {
-	return &methodHandler{
+func NewDynamicHandler(method *desc.MethodDescriptor, logger hclog.Logger) Handler {
+	return &dynamicHandler{
 		method: method,
 		lg:     logger,
 	}
 }
 
-func (h *methodHandler) Name() string {
+func (h *dynamicHandler) Name() string {
 	return h.method.GetName()
 }
 
-func (h *methodHandler) Handle(stream grpc.ServerStream) error {
+func (h *dynamicHandler) Handle(stream grpc.ServerStream) error {
 	inputMsg := dynamic.NewMessage(h.method.GetInputType())
 	if err := stream.RecvMsg(inputMsg); err != nil {
 		return err
@@ -53,9 +49,7 @@ func (h *methodHandler) Handle(stream grpc.ServerStream) error {
 			return err
 		}
 		out = CreatePopulatedMessage(outType)
-	}
-
-	if respTemplate != nil {
+	} else {
 		var inputMap map[string]any
 		if err := json.Unmarshal(inputJSON, &inputMap); err != nil {
 			return err

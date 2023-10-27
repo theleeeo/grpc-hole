@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/TheLeeeo/grpc-hole/cli/vars"
-	"github.com/TheLeeeo/grpc-hole/server/methodhandler"
+	"github.com/TheLeeeo/grpc-hole/methodhandler"
 	"github.com/TheLeeeo/grpc-hole/service"
 	"github.com/fatih/color"
 	"github.com/jhump/protoreflect/desc"
