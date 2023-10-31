@@ -35,7 +35,9 @@ func Save(dir string, serv *desc.ServiceDescriptor) error {
 
 	// save all dependencies to disk
 	fileNameCache := make(map[string]struct{})
-	saveDepRec(serv.GetFile(), fileNameCache, depPath)
+	if err := saveDepRec(serv.GetFile(), fileNameCache, depPath); err != nil {
+		return err
+	}
 
 	for fileName := range fileNameCache {
 		data.DependentFiles = append(data.DependentFiles, fileName)
@@ -49,7 +51,7 @@ func Save(dir string, serv *desc.ServiceDescriptor) error {
 	return nil
 }
 
-// Recursivly go through all dependencies and save it to disk
+// Recursively go through all dependencies and save it to disk
 func saveDepRec(file *desc.FileDescriptor, fileNameCache map[string]struct{}, pathPrefix string) error {
 	for _, dep := range file.GetDependencies() {
 		// File already saved
@@ -75,16 +77,16 @@ func deleteDir(path string) error {
 }
 
 func saveFileDesc(file *desc.FileDescriptor, pathPrefix string) error {
-	return utils.ProtoJsonMarshalAndSave(file.AsFileDescriptorProto(), filepath.Join(pathPrefix, file.GetName()))
+	return utils.ProtoJSONMarshalAndSave(file.AsFileDescriptorProto(), filepath.Join(pathPrefix, file.GetName()))
 }
 
 func saveDataFile(data *serviceData, path string) error {
-	dataJson, err := json.Marshal(data)
+	dataJSON, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(filepath.Join(path, ServiceDataFileName), dataJson, os.ModePerm)
+	err = os.WriteFile(filepath.Join(path, ServiceDataFileName), dataJSON, os.ModePerm)
 	if err != nil {
 		return err
 	}

@@ -9,9 +9,11 @@ import (
 )
 
 func init() {
-	//where to store all the services
+	// where to store all the services
 	RootCmd.PersistentFlags().StringP(vars.SerivceDirKey, "d", ".services", "directory to store services")
-	viper.BindPFlag(vars.SerivceDirKey, RootCmd.PersistentFlags().Lookup(vars.SerivceDirKey))
+	if err := viper.BindPFlag(vars.SerivceDirKey, RootCmd.PersistentFlags().Lookup(vars.SerivceDirKey)); err != nil {
+		panic(err)
+	}
 
 	RootCmd.AddCommand(servicecmd.ServiceCmd)
 	RootCmd.AddCommand(servercmd.ServerCmd)

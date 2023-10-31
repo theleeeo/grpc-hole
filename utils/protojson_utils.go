@@ -9,7 +9,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func ProtoJsonMarshalAndSave(m protoreflect.ProtoMessage, fileName string) error {
+func ProtoJSONMarshalAndSave(m protoreflect.ProtoMessage, fileName string) error {
 	bytes, err := protojson.Marshal(m)
 	if err != nil {
 		return err

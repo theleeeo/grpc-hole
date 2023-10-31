@@ -44,14 +44,14 @@ func ScanServer(addr string) ([]*desc.ServiceDescriptor, error) {
 	return services, nil
 }
 
-func getFirstNonReflectionService(services []string) string {
-	for _, service := range services {
-		if !strings.Contains(service, "grpc.reflection") {
-			return service
-		}
-	}
-	return ""
-}
+// func getFirstNonReflectionService(services []string) string {
+// 	for _, service := range services {
+// 		if !strings.Contains(service, "grpc.reflection") {
+// 			return service
+// 		}
+// 	}
+// 	return ""
+// }
 
 func getNonReflectServices(services []string) []string {
 	nonReflectServices := make([]string, 0)

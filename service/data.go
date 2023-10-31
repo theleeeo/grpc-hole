@@ -10,10 +10,10 @@ const (
 type serviceData struct {
 	// the fully qualified name of the service
 	Name string
-	// the the file containing the service
+	// the file containing the service
 	File string
 	// the files containing the dependencies of the service
 	DependentFiles []string
-	//The time the serivce was saved
+	// The time the serivce was saved
 	SavedAt time.Time
 }

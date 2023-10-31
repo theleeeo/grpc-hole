@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func (s *Server) Handler(srv any, stream grpc.ServerStream) error {
+func (s *Server) Handler(_ any, stream grpc.ServerStream) error {
 	// Extract the fullMethodName name from the stream's context.
 	fullMethodName, ok := grpc.Method(stream.Context())
 	if !ok {
@@ -27,7 +27,6 @@ func (s *Server) Handler(srv any, stream grpc.ServerStream) error {
 		return err
 	}
 
-	// return stream.SendMsg(&dyn) // You may want to customize the response.
 	return nil
 }
 

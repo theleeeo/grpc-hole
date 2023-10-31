@@ -12,7 +12,7 @@ const (
 	responsesDirName = "responses"
 )
 
-func SaveResponseFile(serviceDir string, method string, data []byte) error {
+func SaveResponseFile(serviceDir, method string, data []byte) error {
 	responseDir := filepath.Join(serviceDir, responsesDirName)
 
 	if err := createDir(responseDir); err != nil {

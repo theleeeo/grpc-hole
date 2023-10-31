@@ -13,10 +13,14 @@ import (
 
 func init() {
 	StartCmd.Flags().StringP("addr", "a", "", "the host:port to listen on")
-	viper.BindPFlag("addr", StartCmd.Flags().Lookup("addr"))
+	if err := viper.BindPFlag("addr", StartCmd.Flags().Lookup("addr")); err != nil {
+		panic(err)
+	}
 
 	StartCmd.Flags().StringP("log-level", "l", "info", "[trace|debug|info|warn|error|off]")
-	viper.BindPFlag("log-level", StartCmd.Flags().Lookup("log-level"))
+	if err := viper.BindPFlag("log-level", StartCmd.Flags().Lookup("log-level")); err != nil {
+		panic(err)
+	}
 }
 
 var StartCmd = &cobra.Command{

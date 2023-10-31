@@ -8,7 +8,11 @@ import (
 	"github.com/TheLeeeo/grpc-hole/fieldselector"
 )
 
-func ParseTemplate(l fieldselector.Selection, input map[string]any, outTemplate map[string]any) (map[string]any, []ParseError) {
+const (
+	NoValue = "<no value>"
+)
+
+func ParseTemplate(l fieldselector.Selection, input, outTemplate map[string]any) (map[string]any, []ParseError) {
 	outputTemplate := make(map[string]any)
 	var errors []ParseError
 	for key, value := range outTemplate {
@@ -65,18 +69,18 @@ func ParseArray(l fieldselector.Selection, input map[string]any, array []any) ([
 func GenerateFieldValue(l fieldselector.Selection, input map[string]any, fieldTemplate string) (string, ParseError) {
 	tmpl, err := template.New("inputParser").Funcs(funcMap).Parse(fieldTemplate)
 	if err != nil {
-		return "<no value>", ParseErrorWrap(l, err)
+		return NoValue, ParseErrorWrap(l, err)
 	}
 
 	var buf bytes.Buffer
 	err = tmpl.Execute(&buf, input)
 	if err != nil {
-		return "<no value>", ParseErrorWrap(l, err)
+		return NoValue, ParseErrorWrap(l, err)
 	}
 
 	str := buf.String()
 
-	if str == "<no value>" {
+	if str == NoValue {
 		return str, NewParseError(l, "No value found")
 	}
 

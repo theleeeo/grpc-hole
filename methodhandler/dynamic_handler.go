@@ -67,14 +67,14 @@ func (h *dynamicHandler) Handle(stream grpc.ServerStream) error {
 			h.lg.Warn("Encountered error parsing template", "error", err, "location", err.Location())
 		}
 
-		outJson, err := json.Marshal(outMap)
+		outJSON, err := json.Marshal(outMap)
 		if err != nil {
 			h.lg.Error("Failed to marshal json", "Method", h.method.GetName(), "Error", err)
 			return err
 		}
 
 		out = dynamic.NewMessage(outType)
-		if err := out.UnmarshalJSON(outJson); err != nil {
+		if err := out.UnmarshalJSON(outJSON); err != nil {
 			h.lg.Error("Failed to unmarshal json", "Method", h.method.GetName(), "Error", err)
 			return err
 		}

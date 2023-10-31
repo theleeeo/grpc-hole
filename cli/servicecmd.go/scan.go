@@ -2,10 +2,12 @@ package servicecmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/TheLeeeo/grpc-hole/cli/vars"
 	"github.com/TheLeeeo/grpc-hole/scanning"
 	"github.com/TheLeeeo/grpc-hole/service"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -21,10 +23,11 @@ func init() {
 var ScanCmd = &cobra.Command{
 	Use:   "scan",
 	Short: "scan a running grpc server for services",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		services, err := scanning.ScanServer(targetAddr)
 		if err != nil {
-			return err
+			color.Red(fmt.Errorf("failed to scan service: %w", err).Error())
+			os.Exit(1)
 		}
 
 		fmt.Println("Found services:")
@@ -32,10 +35,20 @@ var ScanCmd = &cobra.Command{
 			fmt.Println(s.GetName())
 		}
 
+		var errors []error
 		for _, s := range services {
-			service.Save(viper.GetString(vars.SerivceDirKey), s)
+			err := service.Save(viper.GetString(vars.SerivceDirKey), s)
+			if err != nil {
+				errors = append(errors, err)
+			}
 		}
 
-		return nil
+		if len(errors) > 0 {
+			color.Red("failed to save services:")
+			for _, err := range errors {
+				fmt.Println(err.Error())
+			}
+			os.Exit(1)
+		}
 	},
 }

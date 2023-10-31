@@ -13,7 +13,7 @@ func (proxyCodec) Marshal(v interface{}) ([]byte, error) {
 }
 
 func (proxyCodec) Unmarshal(data []byte, v interface{}) error {
-	vv := v.(*[]byte)
+	vv := v.(*[]byte) //nolint:errcheck // If there even could be an error here it might as well just panic
 	*vv = data
 	return nil
 }

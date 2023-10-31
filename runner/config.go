@@ -6,6 +6,17 @@ import (
 	"github.com/hashicorp/go-hclog"
 )
 
+type Config struct {
+	// The address to listen on
+	Address string
+
+	// The name of the service to run
+	ServiceName string
+
+	// The configuration for the logger
+	Logging *hclog.LoggerOptions
+}
+
 func (c *Config) Validate() error {
 	if c == nil {
 		return fmt.Errorf("config is nil")
@@ -20,15 +31,4 @@ func (c *Config) Validate() error {
 	}
 
 	return nil
-}
-
-type Config struct {
-	// The address to listen on
-	Address string
-
-	// The name of the service to run
-	ServiceName string
-
-	// The configuration for the logger
-	Logging *hclog.LoggerOptions
 }

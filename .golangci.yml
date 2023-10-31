@@ -1,0 +1,54 @@
+linters:
+  enable:
+    # - revive  # This can be tested manually to improve the quality of the code. They are however far to nit-picky to enforce.
+    - bodyclose
+    - goconst
+    - gofmt
+    - goimports
+    - gosec
+    - misspell
+    - errorlint
+    - errcheck
+    - errchkjson
+    - contextcheck
+    - staticcheck
+    - govet
+    - gosimple
+    - ineffassign
+    - unused
+    - asasalint
+    - asciicheck
+    - bidichk
+    - durationcheck
+    - gocheckcompilerdirectives
+    - gosec
+    - noctx
+    - dupword
+    - misspell
+    - gocritic
+    - errname 
+    - nilerr
+    - unparam
+    - nolintlint
+  fast: true
+
+linters-settings:
+  gocritic:
+    disabled-checks:
+      - ifElseChain
+    # enabled-tags: # These can be tested manually to improve the quality of the code. They are however far to nit-picky to enforce.
+      # - diagnostic
+      # - experimental
+      # - opinionated
+      # - performance
+      # - style
+  nolintlint:
+    require-explanation: true
+    require-specific: true
+  errcheck:
+    check-type-assertions: true
+    check-blank: false
+
+run:
+  skip-files:
+    - ".*test\\.go"
