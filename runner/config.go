@@ -3,6 +3,7 @@ package runner
 import (
 	"fmt"
 
+	"github.com/TheLeeeo/grpc-hole/server"
 	"github.com/hashicorp/go-hclog"
 )
 
@@ -15,6 +16,11 @@ type Config struct {
 
 	// The configuration for the logger
 	Logging *hclog.LoggerOptions
+
+	ServerType server.ServerType
+
+	// ProxyAddress is the address to proxy requests to
+	ProxyAddress string
 }
 
 func (c *Config) Validate() error {

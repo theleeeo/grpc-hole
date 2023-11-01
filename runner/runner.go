@@ -37,9 +37,11 @@ func New(cfg *Config) (*Runner, error) {
 	logger := hclog.New(cfg.Logging)
 
 	serverCfg := &server.Config{
-		Service:    serviceDescr,
-		ServiceDir: serviceDir,
-		Logger:     logger,
+		Service:      serviceDescr,
+		ServiceDir:   serviceDir,
+		Logger:       logger,
+		ServerType:   cfg.ServerType,
+		ProxyAddress: cfg.ProxyAddress,
 	}
 
 	s, err := server.New(serverCfg)

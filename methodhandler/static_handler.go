@@ -13,24 +13,24 @@ import (
 	"google.golang.org/grpc"
 )
 
-// A dynamic handler returns a response based on a template file.
-type dynamicHandler struct {
+// A static handler returns a response based on a template file.
+type staticHandler struct {
 	method *desc.MethodDescriptor
 	lg     hclog.Logger
 }
 
-func NewDynamicHandler(method *desc.MethodDescriptor, logger hclog.Logger) Handler {
-	return &dynamicHandler{
+func NewStaticHandler(method *desc.MethodDescriptor, logger hclog.Logger) Handler {
+	return &staticHandler{
 		method: method,
 		lg:     logger,
 	}
 }
 
-func (h *dynamicHandler) Name() string {
+func (h *staticHandler) Name() string {
 	return h.method.GetName()
 }
 
-func (h *dynamicHandler) Handle(stream grpc.ServerStream) error {
+func (h *staticHandler) Handle(stream grpc.ServerStream) error {
 	inputMsg := dynamic.NewMessage(h.method.GetInputType())
 	if err := stream.RecvMsg(inputMsg); err != nil {
 		return err

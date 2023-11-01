@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/TheLeeeo/grpc-hole/runner"
+	"github.com/TheLeeeo/grpc-hole/server"
 	"github.com/fatih/color"
 	"github.com/hashicorp/go-hclog"
 	"github.com/spf13/cobra"
@@ -12,20 +13,15 @@ import (
 )
 
 func init() {
-	StartCmd.Flags().StringP("addr", "a", "", "the host:port to listen on")
-	if err := viper.BindPFlag("addr", StartCmd.Flags().Lookup("addr")); err != nil {
-		panic(err)
-	}
-
-	StartCmd.Flags().StringP("log-level", "l", "info", "[trace|debug|info|warn|error|off]")
-	if err := viper.BindPFlag("log-level", StartCmd.Flags().Lookup("log-level")); err != nil {
+	ProxyCmd.Flags().String("proxy", "", "the address to proxy to")
+	if err := viper.BindPFlag("proxy", ProxyCmd.Flags().Lookup("proxy")); err != nil {
 		panic(err)
 	}
 }
 
-var StartCmd = &cobra.Command{
-	Use:   "start [service]",
-	Short: "start a server",
+var ProxyCmd = &cobra.Command{
+	Use:   "proxy [service]",
+	Short: "start a proxy server",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// When an error with the command syntax occurs, return the error.
 		// This will print the error and the usage information.
@@ -44,13 +40,15 @@ var StartCmd = &cobra.Command{
 		}
 
 		cfg := &runner.Config{
-			Address: viper.GetString("addr"),
+			Address: viper.GetString("host") + ":" + viper.GetString("port"),
 			Logging: &hclog.LoggerOptions{
 				Name:  "grpc-hole",
 				Level: level,
 				Color: hclog.AutoColor,
 			},
-			ServiceName: args[0],
+			ServiceName:  args[0],
+			ServerType:   server.ProxyServer,
+			ProxyAddress: viper.GetString("proxy"),
 		}
 
 		r, err := runner.New(cfg)
