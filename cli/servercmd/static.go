@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/TheLeeeo/grpc-hole/cli/vars"
 	"github.com/TheLeeeo/grpc-hole/runner"
 	"github.com/TheLeeeo/grpc-hole/server"
 	"github.com/fatih/color"
@@ -20,20 +21,14 @@ var StaticCmd = &cobra.Command{
 	Use:   "static [service]",
 	Short: "start a static server",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// When an error with the command syntax occurs, return the error.
-		// This will print the error and the usage information.
-		// If it is a runtime error, print the error and exit with code 1.
-		if len(args) == 0 {
-			return fmt.Errorf("no service specified")
-		}
-
-		if len(args) > 1 {
-			return (fmt.Errorf("too many arguments"))
-		}
-
 		level := hclog.LevelFromString(viper.GetString("log-level"))
 		if level == hclog.NoLevel {
 			return fmt.Errorf("invalid log level: %s", viper.GetString("log-level"))
+		}
+
+		service := viper.GetString(vars.SerivceKey)
+		if service == "" {
+			return fmt.Errorf("no service specified")
 		}
 
 		cfg := &runner.Config{
@@ -43,7 +38,7 @@ var StaticCmd = &cobra.Command{
 				Level: level,
 				Color: hclog.AutoColor,
 			},
-			ServiceName: args[0],
+			ServiceName: service,
 			ServerType:  server.StaticServer,
 		}
 
