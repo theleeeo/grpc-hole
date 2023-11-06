@@ -13,12 +13,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-func init() {
-	StaticCmd.AddCommand(CreateDefaultsCmd)
-}
-
 var StaticCmd = &cobra.Command{
-	Use:   "static [service]",
+	Use:   "static",
 	Short: "start a static server",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		level := hclog.LevelFromString(viper.GetString("log-level"))
@@ -29,6 +25,11 @@ var StaticCmd = &cobra.Command{
 		service := viper.GetString(vars.SerivceKey)
 		if service == "" {
 			return fmt.Errorf("no service specified")
+		}
+
+		port := viper.GetString("port")
+		if port == "" {
+			return fmt.Errorf("no port specified")
 		}
 
 		cfg := &runner.Config{

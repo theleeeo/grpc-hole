@@ -8,13 +8,21 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-func CreatePopulatedMessage(f *desc.MessageDescriptor) *dynamic.Message {
+const (
+	maxDepth = 3
+)
+
+func CreatePopulatedMessage(f *desc.MessageDescriptor, depth int) *dynamic.Message {
 	msg := dynamic.NewMessage(f)
+	if depth > maxDepth {
+		return msg
+	}
+
 	for _, field := range f.GetFields() {
 		var value any
 		switch field.GetType() {
 		case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
-			value = CreatePopulatedMessage(field.GetMessageType())
+			value = CreatePopulatedMessage(field.GetMessageType(), depth+1)
 		case descriptorpb.FieldDescriptorProto_TYPE_STRING:
 			value = "Hello World"
 		case descriptorpb.FieldDescriptorProto_TYPE_INT32,

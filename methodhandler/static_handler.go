@@ -48,7 +48,7 @@ func (h *staticHandler) Handle(stream grpc.ServerStream) error {
 		if !os.IsNotExist(err) {
 			return err
 		}
-		out = CreatePopulatedMessage(outType)
+		out = CreatePopulatedMessage(outType, 0)
 	} else {
 		var inputMap map[string]any
 		if err := json.Unmarshal(inputJSON, &inputMap); err != nil {

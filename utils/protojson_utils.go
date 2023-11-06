@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -14,6 +15,9 @@ func ProtoJSONMarshalAndSave(m protoreflect.ProtoMessage, fileName string) error
 	if err != nil {
 		return err
 	}
+
+	fileName = path.Clean(fileName)
+	// fileName = filepath.Base()
 
 	err = os.MkdirAll(path.Dir(fileName), os.ModePerm)
 	if err != nil {
@@ -32,13 +36,13 @@ func ProtoJSONMarshalAndSave(m protoreflect.ProtoMessage, fileName string) error
 
 func ProtoLoadAndUnmarshal(fileName string, m protoreflect.ProtoMessage) error {
 	fileName = setExtToJSON(fileName)
-
 	file, err := os.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
 	err = protojson.Unmarshal(file, m)
 	if err != nil {
+		fmt.Println("das ist ein error", err)
 		return err
 	}
 

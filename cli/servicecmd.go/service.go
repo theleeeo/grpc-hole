@@ -6,8 +6,10 @@ import (
 
 func init() {
 	ServiceCmd.AddCommand(ScanCmd)
+	ServiceCmd.AddCommand(LoadCmd)
 	ServiceCmd.AddCommand(ListCmd)
 	ServiceCmd.AddCommand(InfoCmd)
+	ServiceCmd.AddCommand(CreateDefaultsCmd)
 }
 
 var ServiceCmd = &cobra.Command{

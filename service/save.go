@@ -22,11 +22,12 @@ func Save(dir string, serv *desc.ServiceDescriptor) error {
 		SavedAt: time.Now(),
 	}
 
-	if err := deleteDir(dir); err != nil {
+	servicePath := filepath.Join(dir, serv.GetName())
+
+	if err := deleteDir(servicePath); err != nil {
 		return err
 	}
 
-	servicePath := filepath.Join(dir, serv.GetName())
 	depPath := filepath.Join(servicePath, dependencyDirName)
 	// save the service file to disk
 	if err := saveFileDesc(serv.GetFile(), depPath); err != nil {
