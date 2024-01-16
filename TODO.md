@@ -5,5 +5,4 @@
 
 ## Maybe?
 
-- TemplateParser type with caching
 - A "Response" type, containing multiple condition-response pairs that are checked
