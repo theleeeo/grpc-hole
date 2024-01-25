@@ -22,7 +22,7 @@ func Save(dir string, serv *desc.ServiceDescriptor) error {
 		SavedAt: time.Now(),
 	}
 
-	servicePath := filepath.Join(dir, serv.GetName())
+	servicePath := filepath.Join(dir, serv.GetFullyQualifiedName())
 
 	if err := deleteDir(servicePath); err != nil {
 		return err
