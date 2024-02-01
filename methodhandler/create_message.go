@@ -25,17 +25,19 @@ func CreatePopulatedMessage(f *desc.MessageDescriptor, depth int) *dynamic.Messa
 			value = CreatePopulatedMessage(field.GetMessageType(), depth+1)
 		case descriptorpb.FieldDescriptorProto_TYPE_STRING:
 			value = "Hello World"
-		case descriptorpb.FieldDescriptorProto_TYPE_INT32,
-			descriptorpb.FieldDescriptorProto_TYPE_UINT32,
-			descriptorpb.FieldDescriptorProto_TYPE_SINT32,
-			descriptorpb.FieldDescriptorProto_TYPE_FIXED32,
-			descriptorpb.FieldDescriptorProto_TYPE_SFIXED32:
+		case descriptorpb.FieldDescriptorProto_TYPE_UINT32:
+			value = uint32(123)
+		case descriptorpb.FieldDescriptorProto_TYPE_SINT32,
+			descriptorpb.FieldDescriptorProto_TYPE_SFIXED32,
+			descriptorpb.FieldDescriptorProto_TYPE_INT32,
+			descriptorpb.FieldDescriptorProto_TYPE_FIXED32:
 			value = int32(123)
-		case descriptorpb.FieldDescriptorProto_TYPE_INT64,
-			descriptorpb.FieldDescriptorProto_TYPE_UINT64,
-			descriptorpb.FieldDescriptorProto_TYPE_SINT64,
-			descriptorpb.FieldDescriptorProto_TYPE_FIXED64,
-			descriptorpb.FieldDescriptorProto_TYPE_SFIXED64:
+		case descriptorpb.FieldDescriptorProto_TYPE_UINT64:
+			value = uint64(123)
+		case descriptorpb.FieldDescriptorProto_TYPE_SINT64,
+			descriptorpb.FieldDescriptorProto_TYPE_SFIXED64,
+			descriptorpb.FieldDescriptorProto_TYPE_INT64,
+			descriptorpb.FieldDescriptorProto_TYPE_FIXED64:
 			value = int64(123)
 		case descriptorpb.FieldDescriptorProto_TYPE_BOOL:
 			value = true
