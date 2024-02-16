@@ -37,7 +37,7 @@ var ListCmd = &cobra.Command{
 				}
 
 				serviceName := protoreflect.FullName(serviceData.Name)
-				fmt.Println(serviceName.Name())
+				fmt.Println(serviceName)
 			}
 		}
 	},

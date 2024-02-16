@@ -54,7 +54,7 @@ var LoadCmd = &cobra.Command{
 
 		fmt.Println("Found services:")
 		for _, s := range services {
-			fmt.Println(s.GetName())
+			fmt.Println(s.GetFullyQualifiedName())
 		}
 
 		var errors []error
