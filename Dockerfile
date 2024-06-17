@@ -16,4 +16,4 @@ WORKDIR /app
 
 COPY --from=builder /app/grpc-hole .
 
-CMD ["./grpc-hole"]
+ENTRYPOINT ["./grpc-hole"]
