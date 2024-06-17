@@ -1,6 +1,6 @@
 module github.com/TheLeeeo/grpc-hole
 
-go 1.21
+go 1.22
 
 require (
 	github.com/fatih/color v1.14.1
