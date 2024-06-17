@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"strings"
+
 	"github.com/TheLeeeo/grpc-hole/cli/servercmd"
 	"github.com/TheLeeeo/grpc-hole/cli/servicecmd.go"
 	"github.com/TheLeeeo/grpc-hole/cli/vars"
@@ -19,6 +21,9 @@ func init() {
 	if err := viper.BindPFlag(vars.SerivceKey, RootCmd.PersistentFlags().Lookup(vars.SerivceKey)); err != nil {
 		panic(err)
 	}
+
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
 	RootCmd.AddCommand(servicecmd.ServiceCmd)
 	RootCmd.AddCommand(servercmd.ServerCmd)
