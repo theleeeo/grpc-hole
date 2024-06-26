@@ -2,6 +2,7 @@ package runner
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"path/filepath"
 
@@ -35,6 +36,7 @@ func New(cfg *Config) (*Runner, error) {
 	}
 
 	logger := hclog.New(cfg.Logging)
+	log.SetOutput(logger.StandardWriter(&hclog.StandardLoggerOptions{InferLevelsWithTimestamp: true}))
 
 	serverCfg := &server.Config{
 		Service:      serviceDescr,

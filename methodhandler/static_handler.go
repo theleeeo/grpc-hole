@@ -3,9 +3,11 @@ package methodhandler
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"os"
 
+	"github.com/Masterminds/sprig/v3"
 	"github.com/TheLeeeo/grpc-hole/service"
 	"github.com/hashicorp/go-hclog"
 	"github.com/jhump/protoreflect/desc"
@@ -39,10 +41,17 @@ func (h *staticHandler) Handle(stream grpc.ServerStream) error {
 	inputJSON, _ := inputMsg.MarshalJSON()
 	h.lg.Info("Received request", "Method", h.method.GetName(), "Input", string(inputJSON))
 
+	// md, ok := metadata.FromIncomingContext(stream.Context())
+	// if ok {
+	// 	h.lg.Info("Received request", "Method", h.method.GetName(), "Input", string(inputJSON), "Metadata", md)
+	// } else {
+	// 	h.lg.Info("Received request", "Method", h.method.GetName(), "Input", string(inputJSON))
+	// }
+
 	outType := h.method.GetOutputType()
 	var out *dynamic.Message
 
-	respTemplate, err := service.LoadResponse(h.method.GetService().GetName(), h.method.GetName())
+	respTemplate, err := service.LoadResponse(h.method.GetService().GetFullyQualifiedName(), h.method.GetName())
 	if err != nil {
 		// If the error is something else than "file not found", return it.
 		if !os.IsNotExist(err) {
@@ -55,7 +64,9 @@ func (h *staticHandler) Handle(stream grpc.ServerStream) error {
 			return err
 		}
 
-		tmpl, err := template.New("inputParser").Funcs(funcMap).Parse(string(respTemplate))
+		fmt.Println("inputmap", inputMap)
+
+		tmpl, err := template.New("inputParser").Funcs(sprig.FuncMap()).Parse(string(respTemplate))
 		if err != nil {
 			return err
 		}
