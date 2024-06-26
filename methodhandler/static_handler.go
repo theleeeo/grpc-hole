@@ -3,9 +3,9 @@ package methodhandler
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"os"
+	"strings"
 
 	"github.com/Masterminds/sprig/v3"
 	"github.com/TheLeeeo/grpc-hole/service"
@@ -64,9 +64,11 @@ func (h *staticHandler) Handle(stream grpc.ServerStream) error {
 			return err
 		}
 
-		fmt.Println("inputmap", inputMap)
+		cleanedTemplate := string(respTemplate)
+		// This is a hack to allow the use of \" for nested strings in the template file withough some annoying double-escaping issues when loading.
+		cleanedTemplate = strings.ReplaceAll(cleanedTemplate, "\\", "")
 
-		tmpl, err := template.New("inputParser").Funcs(sprig.FuncMap()).Parse(string(respTemplate))
+		tmpl, err := template.New("inputParser").Funcs(sprig.FuncMap()).Parse(cleanedTemplate)
 		if err != nil {
 			return err
 		}

@@ -3,6 +3,7 @@
 gRPC-Hole is a tool for mocking gRPC servers.
 
 ## Terminology
+
 - Service: A protobuf service. It is the api-definition of what methods exists and what types they use.
 - Server: A gRPC-Hole, simply called a server, is a program listening for input requests and creates a response based. A server is based on a Service to specify which methods to handle.
 - Method: An RPC (Remote Procedure Call) that can be called. They are the API endpoints of a server.
@@ -24,6 +25,7 @@ Through the grpc-hole cli you can scan a running gRPC-server using reflection to
 The server must have reflection enabled to be able to be scanned.
 
 How to enable reflection:
+
 - [Go](https://github.com/grpc/grpc-go/blob/master/Documentation/server-reflection-tutorial.md)
 - [Java](https://github.com/grpc/grpc-java/blob/master/documentation/server-reflection-tutorial.md)
 - [C++](https://github.com/grpc/grpc/blob/master/doc/server_reflection_tutorial.md)
@@ -52,6 +54,7 @@ The flag `-r` is the root directory of the protos. This is used as the base to r
 The flag `-f` is the path to the file/files containing the services. This is relative to the root directory specified with `-r`.
 
 #### Known issues:
+
 If a service is loaded from a file (or with a dependency of a file) that defines a custom option and that option is used within the same file it is defined in, the option will not be linked correctly and the service will be broken. This is due to the way the protoc compiler works and is not a bug in gRPC-Hole.
 
 To ensure this will not be an issue, make sure to define all custom options in a separate file and import it into the file where it is used.
@@ -63,9 +66,9 @@ To ensure this will not be an issue, make sure to define all custom options in a
 A static server is responding to the requests with a pre-defined response. The static response can however include go-templates to vary the response based on the input.
 
 Learn more about go-templates [here](https://golang.org/pkg/text/template/)
+All functions avaliable in the [sprig](https://masterminds.github.io/sprig/) library is also available in the templates.
 
 A static server can be started with the following command:
-
 
 ```
 grpc-hole server static -s=ServiceName -p=Port
@@ -89,6 +92,7 @@ The flag `-s` is the name of the service to use and the `-p` is the port to list
 
 The flag `-t` is the target address to forward the requests to.
 
-Coming soon:
+## Coming soon?
+
 - Modify requests before forwarding
 - Modify responses before returning them
