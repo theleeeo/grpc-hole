@@ -9,15 +9,19 @@ import (
 )
 
 type Server struct {
-	service *desc.ServiceDescriptor
+	services []*desc.ServiceDescriptor
 
 	methods map[string]methodhandler.Handler
 
 	lg hclog.Logger
 }
 
-func (s *Server) Name() string {
-	return s.service.GetName()
+func (s *Server) Names() []string {
+	names := make([]string, 0, len(s.services))
+	for _, service := range s.services {
+		names = append(names, service.GetFullyQualifiedName())
+	}
+	return names
 }
 
 func New(cfg *Config) (*Server, error) {
@@ -32,9 +36,9 @@ func New(cfg *Config) (*Server, error) {
 	}
 
 	return &Server{
-		service: cfg.Service,
-		methods: methodHandlers,
-		lg:      cfg.Logger,
+		services: cfg.Services,
+		methods:  methodHandlers,
+		lg:       cfg.Logger,
 	}, nil
 }
 
@@ -45,15 +49,20 @@ func createMethodHandlers(cfg *Config) (map[string]methodhandler.Handler, error)
 	}
 
 	methodHandlers := make(map[string]methodhandler.Handler)
-	for _, method := range cfg.Service.GetMethods() {
+	for _, service := range cfg.Services {
+		for _, method := range service.GetMethods() {
+			h, err := createMethod(cfg, method)
+			if err != nil {
+				return nil, err
+			}
 
-		h, err := createMethod(cfg, method)
-		if err != nil {
-			return nil, err
+			if _, ok := methodHandlers[method.GetName()]; ok {
+				return nil, fmt.Errorf("duplicate method name %q", method.GetName())
+			}
+
+			cfg.Logger.Debug("Registering method", "Method", method.GetName())
+			methodHandlers[method.GetName()] = h
 		}
-
-		cfg.Logger.Debug("Registering method", "Method", method.GetName())
-		methodHandlers[method.GetName()] = h
 	}
 
 	return methodHandlers, nil

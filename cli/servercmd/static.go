@@ -22,9 +22,9 @@ var StaticCmd = &cobra.Command{
 			return fmt.Errorf("invalid log level: %s", viper.GetString("log-level"))
 		}
 
-		service := viper.GetString(vars.SerivceKey)
-		if service == "" {
-			return fmt.Errorf("no service specified")
+		services := viper.GetStringSlice(vars.SerivceKey)
+		if len(services) == 0 {
+			return fmt.Errorf("no services specified")
 		}
 
 		port := viper.GetString("port")
@@ -39,8 +39,8 @@ var StaticCmd = &cobra.Command{
 				Level: level,
 				Color: hclog.AutoColor,
 			},
-			ServiceName: service,
-			ServerType:  server.StaticServer,
+			ServiceNames: services,
+			ServerType:   server.StaticServer,
 		}
 
 		r, err := runner.New(cfg)

@@ -9,10 +9,10 @@ import (
 
 type Config struct {
 	// The service descriptor to use
-	Service *desc.ServiceDescriptor
+	Services []*desc.ServiceDescriptor
 
 	// The directory that contains the service
-	ServiceDir string
+	ServiceDirs []string
 
 	// The logger to use
 	Logger hclog.Logger
@@ -40,11 +40,11 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("config is nil")
 	}
 
-	if c.Service == nil {
+	if len(c.Services) == 0 {
 		return fmt.Errorf("no service specified")
 	}
 
-	if c.ServiceDir == "" {
+	if len(c.Services) == 0 {
 		return fmt.Errorf("no service directory specified")
 	}
 

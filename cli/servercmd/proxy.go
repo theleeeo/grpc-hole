@@ -32,8 +32,8 @@ var ProxyCmd = &cobra.Command{
 			return fmt.Errorf("invalid log level: %s", viper.GetString("log-level"))
 		}
 
-		service := viper.GetString(vars.SerivceKey)
-		if service == "" {
+		services := viper.GetStringSlice(vars.SerivceKey)
+		if len(services) == 0 {
 			return fmt.Errorf("no service specified")
 		}
 
@@ -44,7 +44,7 @@ var ProxyCmd = &cobra.Command{
 				Level: level,
 				Color: hclog.AutoColor,
 			},
-			ServiceName:  service,
+			ServiceNames: services,
 			ServerType:   server.ProxyServer,
 			ProxyAddress: viper.GetString("proxy"),
 		}

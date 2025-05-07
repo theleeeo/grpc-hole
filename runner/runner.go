@@ -29,21 +29,24 @@ func New(cfg *Config) (*Runner, error) {
 		return nil, err
 	}
 
-	serviceDir := filepath.Join(viper.GetString(vars.SerivceDirKey), cfg.ServiceName)
-	serviceDescr, err := service.Load(serviceDir)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load service: %w", err)
-	}
-
 	logger := hclog.New(cfg.Logging)
 	log.SetOutput(logger.StandardWriter(&hclog.StandardLoggerOptions{InferLevelsWithTimestamp: true}))
 
 	serverCfg := &server.Config{
-		Service:      serviceDescr,
-		ServiceDir:   serviceDir,
 		Logger:       logger,
 		ServerType:   cfg.ServerType,
 		ProxyAddress: cfg.ProxyAddress,
+	}
+
+	for _, serviceName := range cfg.ServiceNames {
+		serviceDir := filepath.Join(viper.GetString(vars.SerivceDirKey), serviceName)
+		serviceDescr, err := service.Load(serviceDir)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load service: %w", err)
+		}
+
+		serverCfg.ServiceDirs = append(serverCfg.ServiceDirs, serviceDir)
+		serverCfg.Services = append(serverCfg.Services, serviceDescr)
 	}
 
 	s, err := server.New(serverCfg)
@@ -66,7 +69,7 @@ func (r *Runner) Run() error {
 
 	srv := grpc.NewServer(grpc.UnknownServiceHandler(r.server.Handler))
 
-	r.lg.Info("Server started", "address", r.addr, "service", r.server.Name())
+	r.lg.Info("Server started", "address", r.addr, "services", r.server.Names())
 	if err := srv.Serve(lis); err != nil {
 		return fmt.Errorf("failed to serve: %w", err)
 	}

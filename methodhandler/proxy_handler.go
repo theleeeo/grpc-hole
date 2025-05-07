@@ -46,7 +46,7 @@ func (h *proxyHandler) Handle(stream grpc.ServerStream) error {
 		return err
 	}
 
-	h.lg.Info("Received request", "Method", h.method.GetName())
+	h.lg.Info("Received request", "Method", h.method.GetFullyQualifiedName())
 	if h.lg.IsDebug() {
 		h.lg.Debug("Request message")
 		fmt.Println(inputMsg.String())

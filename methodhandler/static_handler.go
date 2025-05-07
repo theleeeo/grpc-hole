@@ -39,7 +39,7 @@ func (h *staticHandler) Handle(stream grpc.ServerStream) error {
 	}
 
 	inputJSON, _ := inputMsg.MarshalJSON()
-	h.lg.Info("Received request", "Method", h.method.GetName(), "Input", string(inputJSON))
+	h.lg.Info("Received request", "Method", h.method.GetFullyQualifiedName(), "Input", string(inputJSON))
 
 	// md, ok := metadata.FromIncomingContext(stream.Context())
 	// if ok {
@@ -81,7 +81,7 @@ func (h *staticHandler) Handle(stream grpc.ServerStream) error {
 
 		out = dynamic.NewMessage(outType)
 		if err := out.UnmarshalJSON(buf.Bytes()); err != nil {
-			h.lg.Error("Failed to unmarshal json", "Method", h.method.GetName(), "Error", err)
+			h.lg.Error("Failed to unmarshal json", "Method", h.method.GetFullyQualifiedName(), "Error", err)
 			return err
 		}
 	}

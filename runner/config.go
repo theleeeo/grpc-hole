@@ -12,7 +12,7 @@ type Config struct {
 	Address string
 
 	// The name of the service to run
-	ServiceName string
+	ServiceNames []string
 
 	// The configuration for the logger
 	Logging *hclog.LoggerOptions
@@ -32,7 +32,7 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("no address specified")
 	}
 
-	if c.ServiceName == "" {
+	if len(c.ServiceNames) == 0 {
 		return fmt.Errorf("no service specified")
 	}
 
