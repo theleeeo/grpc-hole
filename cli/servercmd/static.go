@@ -22,7 +22,7 @@ var StaticCmd = &cobra.Command{
 			return fmt.Errorf("invalid log level: %s", viper.GetString("log-level"))
 		}
 
-		services := viper.GetStringSlice(vars.SerivceKey)
+		services := viper.GetStringSlice(vars.ServiceKey)
 		if len(services) == 0 {
 			return fmt.Errorf("no services specified")
 		}

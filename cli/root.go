@@ -17,8 +17,8 @@ func init() {
 		panic(err)
 	}
 
-	RootCmd.PersistentFlags().StringSliceP(vars.SerivceKey, "s", []string{}, "which services to use")
-	if err := viper.BindPFlag(vars.SerivceKey, RootCmd.PersistentFlags().Lookup(vars.SerivceKey)); err != nil {
+	RootCmd.PersistentFlags().StringSliceP(vars.ServiceKey, "s", []string{}, "which services to use")
+	if err := viper.BindPFlag(vars.ServiceKey, RootCmd.PersistentFlags().Lookup(vars.ServiceKey)); err != nil {
 		panic(err)
 	}
 

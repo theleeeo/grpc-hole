@@ -18,23 +18,26 @@ var CreateDefaultsCmd = &cobra.Command{
 	Use:   "create-defaults",
 	Short: "create default response files for a service",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		serviceName := viper.GetString(vars.SerivceKey)
-		if serviceName == "" {
+		serviceNames := viper.GetStringSlice(vars.ServiceKey)
+		if len(serviceNames) == 0 {
 			return fmt.Errorf("no service specified")
 		}
 
-		path := filepath.Join(viper.GetString(vars.SerivceDirKey), serviceName)
+		if len(serviceNames) > 1 {
+			return fmt.Errorf("only one service can be specified at a time, got %d", len(serviceNames))
+		}
+
+		path := filepath.Join(viper.GetString(vars.SerivceDirKey), serviceNames[0])
 		service, err := service.Load(path)
 		if err != nil {
 			color.Red(fmt.Errorf("failed to load service: %w", err).Error())
 			os.Exit(1)
 		}
 
-		serviceDir := filepath.Join(viper.GetString(vars.SerivceDirKey), serviceName)
+		serviceDir := filepath.Join(viper.GetString(vars.SerivceDirKey), serviceNames[0])
 		for _, method := range service.GetMethods() {
-			fmt.Println("Beginning on ", method.GetName(), "...")
-			err := CreateDefaultResponseFile(method, serviceDir)
-			if err != nil {
+			fmt.Println("Working on", method.GetName(), "...")
+			if err := CreateDefaultResponseFile(method, serviceDir); err != nil {
 				color.Red(fmt.Errorf("failed to create default response file for method %s: %w", method.GetName(), err).Error())
 			}
 		}
